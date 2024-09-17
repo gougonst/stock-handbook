@@ -1,4 +1,5 @@
-use actix_web::{web, App, HttpServer};
+use actix_cors::Cors;
+use actix_web::{web, App, http, HttpServer};
 use app_state::AppState;
 use database::mongo_repository::MongoUserRepository;
 use env_logger::Env;
@@ -42,6 +43,12 @@ async fn main() -> std::io::Result<()> {
 
     let server = HttpServer::new(move || {
         App::new()
+            .wrap(
+                Cors::default()
+                    .allowed_origin(constants::CORS_DOMAIN)
+                    .allowed_methods(vec!["GET", "POST", "OPTIONS"])
+                    .allowed_headers(vec![http::header::CONTENT_TYPE, http::header::ACCEPT])
+            )
             .app_data(data.clone())
             .configure(routes::auth::auth_scope)
     })

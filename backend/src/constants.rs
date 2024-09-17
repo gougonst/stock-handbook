@@ -1,5 +1,6 @@
 pub const MONGODB_CONN_STR_ENV: &str = "MONGODB_CONNECTION_STRING";
 pub const DATABASE_NAME: &str = "stock_handnote";
+pub const CORS_DOMAIN: &str = "http://192.168.1.148:8080";
 
 pub const USER_COLL_NAME: &str = "users";
 pub const USER_COLL_USERNAME_COL: &str = "username";
