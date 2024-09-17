@@ -1,6 +1,8 @@
 use actix_web::{web, App, HttpServer};
 use app_state::AppState;
 use database::mongo_repository::MongoUserRepository;
+use env_logger::Env;
+use log::info;
 use std::env;
 use std::sync::Arc;
 use mongodb::{Client, Database};
@@ -25,6 +27,10 @@ async fn init_db() -> Result<Arc<Database>, Box<dyn std::error::Error>> {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    // Init logger
+    env_logger::init_from_env(Env::default().default_filter_or("info"));
+
+    // Init database
     let db = init_db().await.unwrap_or_else(|e| {
         panic!("{}", format!("{}: {}", constants::INIT_DB_ERR, e));
     });
@@ -34,12 +40,13 @@ async fn main() -> std::io::Result<()> {
     };
     let data = web::Data::new(app_state);
 
-    HttpServer::new(move || {
+    let server = HttpServer::new(move || {
         App::new()
             .app_data(data.clone())
             .configure(routes::auth::auth_scope)
     })
-    .bind(("0.0.0.0", 8081))?
-    .run()
-    .await
+    .bind(("0.0.0.0", 8081))?;
+
+    info!("Server is running on 'http://0.0.0.0:8081'");
+    server.run().await
 }
