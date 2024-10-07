@@ -1,31 +1,35 @@
 import axios from "axios";
 import emitter from '@/utils/mitt';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { API_BASE_URL, LOGIN_API, API_TIMEOUT, LOGIN_PASSWORD_INCORRECT, LOGIN_USER_NOT_FOUND, INTERNAL_ERROR, NON_EXIST_STATUS_CODE } from "@/constants";
 
 const loginUrl = `${API_BASE_URL}${LOGIN_API}`;
 
 export default {
     name: 'UserLogin', 
-    data() {
-        return {
-            username: "", 
-            password: "", 
-        };
-    }, 
-    methods: {
-        async login() {
+    setup() {
+        const router = useRouter();
+
+        const username = ref(""); 
+        const password = ref("");
+
+        const login = async () => {
             let alertType = "";
             let alertMessage = "";
 
             try {
                 await axios.post(loginUrl, {
-                    username: this.username, 
-                    password: this.password
+                    username: username.value, 
+                    password: password.value
                 }, {
                     timeout: API_TIMEOUT, 
                     headers: {
                         "Content-Type": "application/json"
                     }
+                });
+                router.push({
+                    path: 'dashboard'
                 });
             } catch (err) {
                 if (err.response) {
@@ -58,6 +62,12 @@ export default {
                     message: alertMessage
                 });
             }
-        }
+        };
+
+        return {
+            username, 
+            password, 
+            login
+        };
     }
 }
