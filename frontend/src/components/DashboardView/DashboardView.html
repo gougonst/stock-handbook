@@ -1,4 +1,24 @@
 <div class="container">
-    <div class="row">
-    </div>
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a 
+                class="nav-link" 
+                v-bind:class="{ active: currentTab === 'inventory' }" 
+                v-on:click="clickInventoryTab"
+            >
+                庫存
+            </a>
+        </li>
+        <li class="nav-item">
+            <a 
+                class="nav-link" 
+                v-bind:class="{ active: currentTab === 'history' }" 
+                v-on:click="clickHistoryTab"
+            >
+                歷史
+            </a>
+        </li>
+    </ul>
+    <InventoryView v-show="currentTab === 'inventory'" />
+    <HistoryView v-show="currentTab === 'history'" />
 </div>
