@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
 export default {
     name: "InventoryView", 
@@ -14,12 +14,43 @@ export default {
             { key: 'returnRate', label: "報酬率" },
             { key: 'balance', label: "平衡" }
         ]);
+        const newItem = ref({
+            'code': '', 
+            'shares': 0, 
+            'buyPrice': 0, 
+            'principal': '', 
+            'date': '', 
+            'currentPrice': 0, 
+            'profitLoss': 0, 
+            'returnRate': 0, 
+            'balance': 0
+        });
+        const totalRecord = ref(0);
+        const totalPrice = ref(0);
 
-        const items = ref([]);
+        const listItems = async () => {
+
+        };
+
+        const addItem = () => {
+
+        };
+
+        const deleteItem = () => {
+
+        };
+
+        onMounted(() => {
+            listItems();
+        });
 
         return {
             fields, 
-            items
+            newItem, 
+            totalRecord, 
+            totalPrice, 
+            addItem, 
+            deleteItem
         };
     }
 }

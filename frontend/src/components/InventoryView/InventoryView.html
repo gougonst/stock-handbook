@@ -1,4 +1,58 @@
-<div>
-    <b-table :items="items" :fields="fields" :tbody-tr-class="rowClass"></b-table>
-    <p>this duck</p>
+<div class="table-responsive">
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col"></th>
+                <th scope="col">代碼</th>
+                <th scope="col">股數</th>
+                <th scope="col">買價</th>
+                <th scope="col">本金</th>
+                <th scope="col">日期</th>
+                <th scope="col">現價</th>
+                <th scope="col">損益</th>
+                <th scope="col">報酬率</th>
+                <th scope="col">平衡</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="(item, index) in items" :key="index">
+                <td><button v-on:click="deleteItem">-</button></td>
+                <td>{{ item.code }}</td>
+                <td>{{ item.shares }}</td>
+                <td>{{ item.buyPrice }}</td>
+                <td>{{ item.principal }}</td>
+                <td>{{ item.date }}</td>
+                <td>{{ item.currentPrice }}</td>
+                <td>{{ item.profitLoss }}</td>
+                <td>{{ item.returnRate }}</td>
+                <td>{{ item.balance }}</td>
+            </tr>
+            <tr>
+                <td><button v-on:click="addItem">+</button></td>
+                <td><input v-model="newItem.code" /></td>
+                <td><input v-model="newItem.shares" /></td>
+                <td><input v-model="newItem.buyPrice" /></td>
+                <td><input v-model="newItem.principal" /></td>
+                <td><input v-model="newItem.date" /></td>
+                <td><input v-model="newItem.currentPrice" /></td>
+                <td><input v-model="newItem.profitLoss" /></td>
+                <td><input v-model="newItem.returnRate" /></td>
+                <td><input v-model="newItem.balance" /></td>
+            </tr>
+            <!--
+            <tr>
+                <th scope="row">1</th>
+                <td>Mark</td>
+                <td>Otto</td>
+                <td>@mdo</td>
+            </tr>
+            -->
+        </tbody>
+    </table>
+</div>
+<div class="container">
+    <div class="d-flex">
+        <p class="me-5">總筆數: {{ totalRecord }}</p>
+        <p>總額: {{ totalPrice }}</p>
+    </div>
 </div>
