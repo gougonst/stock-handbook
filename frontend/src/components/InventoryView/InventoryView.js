@@ -1,8 +1,11 @@
+import { useStore } from "vuex";
 import { onMounted, ref } from 'vue';
 
 export default {
     name: "InventoryView", 
     setup() {
+        const store = useStore();
+
         const fields = ref([
             { key: 'code', label: "代碼" },
             { key: 'shares', label: "股數" },
@@ -33,7 +36,7 @@ export default {
         };
 
         const addItem = () => {
-
+            
         };
 
         const deleteItem = () => {

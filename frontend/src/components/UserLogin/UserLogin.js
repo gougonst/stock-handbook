@@ -2,6 +2,7 @@ import axios from "axios";
 import emitter from '@/utils/mitt';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useStore } from "vuex";
 import { API_BASE_URL, LOGIN_API, API_TIMEOUT, LOGIN_PASSWORD_INCORRECT, LOGIN_USER_NOT_FOUND, INTERNAL_ERROR, NON_EXIST_STATUS_CODE } from "@/constants";
 
 const loginUrl = `${API_BASE_URL}${LOGIN_API}`;
@@ -10,6 +11,7 @@ export default {
     name: 'UserLogin', 
     setup() {
         const router = useRouter();
+        const store = useStore();
 
         const username = ref(""); 
         const password = ref("");
@@ -28,6 +30,11 @@ export default {
                         "Content-Type": "application/json"
                     }
                 });
+
+                // Store username to global state
+                store.dispatch('login', { username: username.value });
+
+                // Go to dashboard page
                 router.push({
                     path: 'dashboard'
                 });
