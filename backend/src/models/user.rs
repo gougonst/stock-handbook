@@ -1,28 +1,21 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct UserModel {
+pub struct User {
     username: String,
     password: String,
 }
 
-impl UserModel {
+impl User {
     pub fn new(username: String, password: String) -> Self {
-        UserModel { username, password }
+        User { username, password }
     }
-}
 
-pub trait User: Send + Sync {
-    fn username(&self) -> &str;
-    fn password(&self) -> &str;
-}
-
-impl User for UserModel {
-    fn username(&self) -> &str {
+    pub fn username(&self) -> &str {
         &self.username
     }
 
-    fn password(&self) -> &str {
+    pub fn password(&self) -> &str {
         &self.password
     }
 }

@@ -1,6 +1,6 @@
-use crate::database::mongo_repository;
+use crate::database::user_repository::UserRepository;
 use std::sync::Arc;
 
 pub struct AppState {
-    pub user_repo: Arc<mongo_repository::MongoUserRepository>,
+    pub user_repo: Arc<UserRepository>,
 }

@@ -1,7 +1,7 @@
 use actix_cors::Cors;
 use actix_web::{http, web, App, HttpServer};
 use app_state::AppState;
-use database::mongo_repository::MongoUserRepository;
+use database::user_repository::UserRepository;
 use env_logger::Env;
 use log::info;
 use mongodb::{Client, Database};
@@ -35,7 +35,7 @@ async fn main() -> std::io::Result<()> {
     let db = init_db().await.unwrap_or_else(|e| {
         panic!("{}", format!("{}: {}", constants::INIT_DB_ERR, e));
     });
-    let user_repo = Arc::new(MongoUserRepository::new(db));
+    let user_repo = Arc::new(UserRepository::new(db));
     let app_state = AppState { user_repo };
     let data = web::Data::new(app_state);
 
