@@ -1,12 +1,12 @@
 use actix_cors::Cors;
-use actix_web::{web, App, http, HttpServer};
+use actix_web::{http, web, App, HttpServer};
 use app_state::AppState;
 use database::mongo_repository::MongoUserRepository;
 use env_logger::Env;
 use log::info;
+use mongodb::{Client, Database};
 use std::env;
 use std::sync::Arc;
-use mongodb::{Client, Database};
 mod app_state;
 mod constants;
 mod database;
@@ -36,9 +36,7 @@ async fn main() -> std::io::Result<()> {
         panic!("{}", format!("{}: {}", constants::INIT_DB_ERR, e));
     });
     let user_repo = Arc::new(MongoUserRepository::new(db));
-    let app_state = AppState {
-        user_repo
-    };
+    let app_state = AppState { user_repo };
     let data = web::Data::new(app_state);
 
     let server = HttpServer::new(move || {
@@ -47,7 +45,7 @@ async fn main() -> std::io::Result<()> {
                 Cors::default()
                     .allowed_origin(constants::CORS_DOMAIN)
                     .allowed_methods(vec!["GET", "POST", "OPTIONS"])
-                    .allowed_headers(vec![http::header::CONTENT_TYPE, http::header::ACCEPT])
+                    .allowed_headers(vec![http::header::CONTENT_TYPE, http::header::ACCEPT]),
             )
             .app_data(data.clone())
             .configure(routes::auth::auth_scope)

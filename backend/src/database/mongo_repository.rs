@@ -1,15 +1,15 @@
-use async_trait:: async_trait;
-use mongodb::{
-    bson::{self, doc, to_document, Document},
-    Collection, Database
-};
-use std::sync::Arc;
-use crate::{constants, models::user::UserModel};
 use crate::database::repository::{UserRepository, UserRepositoryError};
 use crate::models::user::User;
+use crate::{constants, models::user::UserModel};
+use async_trait::async_trait;
+use mongodb::{
+    bson::{self, doc, to_document, Document},
+    Collection, Database,
+};
+use std::sync::Arc;
 
 pub struct MongoUserRepository {
-    db: Arc<Database>, 
+    db: Arc<Database>,
 }
 
 impl MongoUserRepository {
@@ -28,10 +28,11 @@ impl MongoUserRepository {
 
         match user_doc {
             Some(user_doc) => {
-                let user: UserModel = bson::from_document(user_doc).map_err(UserRepositoryError::BsonDeserializeError)?;
+                let user: UserModel = bson::from_document(user_doc)
+                    .map_err(UserRepositoryError::BsonDeserializeError)?;
                 Ok(Some(Box::new(user)))
-            }, 
-            None => Ok(None)
+            }
+            None => Ok(None),
         }
     }
 }
@@ -40,23 +41,22 @@ impl MongoUserRepository {
 impl UserRepository for MongoUserRepository {
     async fn check_user(&self, user: &UserModel) -> Result<bool, UserRepositoryError> {
         let db_user: Box<dyn User> = match self.get_user(user.username()).await {
-            Ok(Some(db_user)) => db_user, 
-            Ok(None) => return Err(UserRepositoryError::UserNotFound), 
-            Err(e) => return Err(e)
+            Ok(Some(db_user)) => db_user,
+            Ok(None) => return Err(UserRepositoryError::UserNotFound),
+            Err(e) => return Err(e),
         };
-        
+
         Ok(user.password() == db_user.password())
     }
 
     async fn create_user(&self, user: &UserModel) -> Result<bool, UserRepositoryError> {
         match self.get_user(user.username()).await? {
-            Some(_) => {
-                Ok(false)
-            }, 
+            Some(_) => Ok(false),
             None => {
                 let user_coll: Collection<Document> = self.db.collection(constants::USER_COLL_NAME);
 
-                let user_doc = bson::to_document(&user).map_err(UserRepositoryError::BsonSerializeError)?;
+                let user_doc =
+                    bson::to_document(&user).map_err(UserRepositoryError::BsonSerializeError)?;
                 user_coll.insert_one(user_doc).await?;
                 Ok(true)
             }

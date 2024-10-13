@@ -1,20 +1,20 @@
+use crate::models::user::{User, UserModel};
 use async_trait::async_trait;
-use mongodb::error::Error as MongoError;
 use mongodb::bson::de::Error as BsonDeError;
 use mongodb::bson::ser::Error as BsonSeError;
+use mongodb::error::Error as MongoError;
 use thiserror::Error;
-use crate::models::user::{User, UserModel};
 
 #[derive(Error, Debug)]
 pub enum UserRepositoryError {
     #[error("Database error")]
-    DatabaseError(#[from] MongoError), 
+    DatabaseError(#[from] MongoError),
     #[error("Bson deserialize error")]
-    BsonDeserializeError(#[from] BsonDeError), 
+    BsonDeserializeError(#[from] BsonDeError),
     #[error("Bson serialize error")]
-    BsonSerializeError(#[from] BsonSeError), 
+    BsonSerializeError(#[from] BsonSeError),
     #[error("User not found")]
-    UserNotFound, 
+    UserNotFound,
 }
 
 #[async_trait]

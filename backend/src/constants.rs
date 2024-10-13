@@ -4,9 +4,11 @@ pub const CORS_DOMAIN: &str = "http://192.168.1.148:8080";
 
 pub const USER_COLL_NAME: &str = "users";
 pub const USER_COLL_USERNAME_COL: &str = "username";
-pub const USER_COLL_PASSWORD_COL: &str = "password";
 
-pub const GET_MONGODB_CONN_STR_ENV_FAIL: &str = "Get mongodb connection string from environment variable failed";
+pub const STOCK_COLL_NAME: &str = "stocks";
+
+pub const GET_MONGODB_CONN_STR_ENV_FAIL: &str =
+    "Get mongodb connection string from environment variable failed";
 pub const INIT_DB_ERR: &str = "Init database error";
 
 pub const HTTP_OK: &str = "Ok";
