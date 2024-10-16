@@ -6,6 +6,7 @@ pub const USER_COLL_NAME: &str = "users";
 pub const USER_COLL_USERNAME_COL: &str = "username";
 
 pub const STOCK_COLL_NAME: &str = "stocks";
+pub const STOCK_COLL_USERNAME_COL: &str = "username";
 
 pub const GET_MONGODB_CONN_STR_ENV_FAIL: &str =
     "Get mongodb connection string from environment variable failed";
