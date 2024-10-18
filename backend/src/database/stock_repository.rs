@@ -5,7 +5,7 @@ use mongodb::{
     bson::{self, doc, Document},
     Collection, Database,
 };
-use log::error;
+use log::{debug, error};
 use std::sync::Arc;
 
 pub struct StockRepository {
@@ -31,6 +31,7 @@ impl StockRepository {
             .await
             .map_err(RepositoryError::DatabaseError)?
         {
+            debug!("Hello");
             let stock: Stock =
                 bson::from_document(stock_doc).map_err(|e| {
                     error!("BsonDeserializaError: {:?}", e);
@@ -43,7 +44,12 @@ impl StockRepository {
     }
 
     pub async fn add_stocks(&self, stock: &Stock) -> Result<bool, RepositoryError> {
-        Ok(false)
+        let stock_coll: Collection<Document> = self.db.collection(constants::STOCK_COLL_NAME);
+
+        let stock_doc = 
+            bson::to_document(&stock).map_err(RepositoryError::BsonSerializeError)?;
+        stock_coll.insert_one(stock_doc).await?;
+        Ok(true)
     }
 
     pub async fn delete_stocks(&self, stock: &str) -> Result<bool, RepositoryError> {
