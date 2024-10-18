@@ -6,23 +6,25 @@ const store = createStore({
         user: null
     }, 
     mutations: {
-        setAuth(state, user) {
-            state.user = user;
+        setAuth(state, username) {
+            console.log("Set username:", username);
+            state.username = username;
         }, 
         clearAuth(state) {
-            state.user = null;
+            state.username = null;
         }
     }, 
     actions: {
         login({ commit }, { username }) {
             // TODO: It should add { secure: true } option after using HTTPS
             Cookies.set('username', username, { sameSite: 'strict' });
-            commit('setAuth', { username });
+            commit('setAuth', username);
         }, 
         initializeAuth({ commit }) {
             const username = Cookies.get('username');
+            console.log("Login user:", username);
             if (username) {
-                commit('setAuth', { username });
+                commit('setAuth', username);
             } else {
                 commit('clearAuth');
             }

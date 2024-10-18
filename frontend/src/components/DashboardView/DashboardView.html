@@ -19,6 +19,6 @@
             </a>
         </li>
     </ul>
-    <InventoryView v-show="currentTab === 'inventory'" />
-    <HistoryView v-show="currentTab === 'history'" />
+    <InventoryView v-if="currentTab === 'inventory'" />
+    <HistoryView v-if="currentTab === 'history'" />
 </div>

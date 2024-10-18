@@ -1,5 +1,9 @@
 import { useStore } from "vuex";
+import { API_BASE_URL, API_TIMEOUT, LIST_INVENTORIES_API } from '@/constants';
+import axios from 'axios';
 import { onMounted, ref } from 'vue';
+
+const listInventoriesUrl = `${API_BASE_URL}${LIST_INVENTORIES_API}`;
 
 export default {
     name: "InventoryView", 
@@ -32,7 +36,23 @@ export default {
         const totalPrice = ref(0);
 
         const listItems = async () => {
+            try {
+                console.log(store.state.username);
+                const resp = await axios.get(listInventoriesUrl, {
+                    params: {
+                        username: store.state.username
+                    }, 
+                    timeout: API_TIMEOUT, 
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
 
+                const stocks = resp.data;
+                console.log(stocks);
+            } catch (err) {
+                // pass
+            }
         };
 
         const addItem = () => {
