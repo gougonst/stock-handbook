@@ -19,12 +19,12 @@
                 <td><button v-on:click="deleteItem">-</button></td>
                 <td>{{ item.code }}</td>
                 <td>{{ item.shares }}</td>
-                <td>{{ item.buyPrice }}</td>
+                <td>{{ item.buy_price }}</td>
                 <td>{{ item.principal }}</td>
                 <td>{{ item.date }}</td>
-                <td>{{ item.currentPrice }}</td>
-                <td>{{ item.profitLoss }}</td>
-                <td>{{ item.returnRate }}</td>
+                <td>{{ item.current_price }}</td>
+                <td>{{ item.profit_loss }}</td>
+                <td>{{ item.return_rate }}</td>
                 <td>{{ item.balance }}</td>
             </tr>
             <tr>
@@ -33,26 +33,25 @@
                 <td><input v-model="newItem.shares" /></td>
                 <td><input v-model="newItem.buyPrice" /></td>
                 <td><input v-model="newItem.principal" /></td>
-                <td><input v-model="newItem.date" /></td>
+                <td>
+                    <el-date-picker
+                        v-model="newItem.date"
+                        type="date"
+                        placeholder="Select date"
+                        format="YYYY-MM-DD">
+                    </el-date-picker>
+                </td>
                 <td><input v-model="newItem.currentPrice" /></td>
                 <td><input v-model="newItem.profitLoss" /></td>
                 <td><input v-model="newItem.returnRate" /></td>
                 <td><input v-model="newItem.balance" /></td>
             </tr>
-            <!--
-            <tr>
-                <th scope="row">1</th>
-                <td>Mark</td>
-                <td>Otto</td>
-                <td>@mdo</td>
-            </tr>
-            -->
         </tbody>
     </table>
 </div>
 <div class="container">
     <div class="d-flex">
-        <p class="me-5">總筆數: {{ totalRecord }}</p>
+        <p class="me-5">總筆數: {{ items.length }}</p>
         <p>總額: {{ totalPrice }}</p>
     </div>
 </div>

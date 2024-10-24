@@ -12,6 +12,8 @@
     "axios": "^1.7.7",
     "bootstrap": "^5.3.3",
     "core-js": "^3.8.3",
+    "date-fns": "^4.1.0",
+    "element-plus": "^2.8.6",
     "js-cookie": "^3.0.5",
     "mitt": "^3.0.1",
     "vue": "^3.2.13",

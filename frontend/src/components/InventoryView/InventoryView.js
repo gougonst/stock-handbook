@@ -1,27 +1,19 @@
 import { useStore } from "vuex";
-import { API_BASE_URL, API_TIMEOUT, LIST_INVENTORIES_API } from '@/constants';
+import { ADD_INVENTORY_API, ADD_INVENTORY_ERROR, API_BASE_URL, API_TIMEOUT, LIST_INVENTORIES_API, LIST_INVENTORY_ERROR } from '@/constants';
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
+import emitter from "@/utils/mitt";
+import { format } from 'date-fns';
 
 const listInventoriesUrl = `${API_BASE_URL}${LIST_INVENTORIES_API}`;
+const addInventoryUrl = `${API_BASE_URL}${ADD_INVENTORY_API}`;
 
 export default {
     name: "InventoryView", 
     setup() {
         const store = useStore();
 
-        const fields = ref([
-            { key: 'code', label: "代碼" },
-            { key: 'shares', label: "股數" },
-            { key: 'buyPrice', label: "買價" },
-            { key: 'principal', label: "本金" },
-            { key: 'date', label: "日期" },
-            { key: 'currentPrice', label: "現價" },
-            { key: 'profitLoss', label: "損益" },
-            { key: 'returnRate', label: "報酬率" },
-            { key: 'balance', label: "平衡" }
-        ]);
-        const newItem = ref({
+        const getDefaultNewItem = () => ({
             'code': '', 
             'shares': 0, 
             'buyPrice': 0, 
@@ -32,12 +24,20 @@ export default {
             'returnRate': 0, 
             'balance': 0
         });
+
+        const newItem = ref(getDefaultNewItem());
+        const items = ref([]);
         const totalRecord = ref(0);
         const totalPrice = ref(0);
 
+        const pushItem = (stock) => {
+            const date = new Date(parseInt(stock.date.$date.$numberLong, 10));
+            stock.date = format(date, "yyyy-MM-dd");
+            items.value.push(stock);
+        }
+
         const listItems = async () => {
             try {
-                console.log(store.state.username);
                 const resp = await axios.get(listInventoriesUrl, {
                     params: {
                         username: store.state.username
@@ -48,15 +48,43 @@ export default {
                     }
                 });
 
-                const stocks = resp.data;
-                console.log(stocks);
+                items.value = [];
+                resp.data.forEach(stock => {
+                    pushItem(stock);
+                });
             } catch (err) {
-                // pass
+                emitter.emit("show-alert", {
+                    type: "danger", 
+                    message: LIST_INVENTORY_ERROR
+                });
             }
         };
 
-        const addItem = () => {
-            
+        const addItem = async () => {
+            try {
+                const formattedDate = new Date(newItem.value.date).toISOString();
+                const resp = await axios.post(addInventoryUrl, {
+                    username: store.state.username, 
+                    code: newItem.value.code, 
+                    shares: parseInt(newItem.value.shares), 
+                    buy_price: parseFloat(newItem.value.buyPrice), 
+                    date: formattedDate, 
+                    current_price: parseFloat(newItem.value.currentPrice)
+                }, {
+                    timeout: API_TIMEOUT, 
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                pushItem(resp.data);
+                newItem.value = getDefaultNewItem();
+            } catch(err) {
+                emitter.emit("show-alert", {
+                    type: "danger", 
+                    message: ADD_INVENTORY_ERROR
+                });
+            }
         };
 
         const deleteItem = () => {
@@ -68,7 +96,7 @@ export default {
         });
 
         return {
-            fields, 
+            items, 
             newItem, 
             totalRecord, 
             totalPrice, 
