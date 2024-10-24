@@ -31,7 +31,6 @@ impl StockRepository {
             .await
             .map_err(RepositoryError::DatabaseError)?
         {
-            debug!("Hello");
             let stock: Stock =
                 bson::from_document(stock_doc).map_err(|e| {
                     error!("BsonDeserializaError: {:?}", e);
@@ -43,13 +42,16 @@ impl StockRepository {
         Ok(stocks)
     }
 
-    pub async fn add_stocks(&self, stock: &Stock) -> Result<bool, RepositoryError> {
+    pub async fn add_stock(&self, stock: &Stock) -> Result<String, RepositoryError> {
         let stock_coll: Collection<Document> = self.db.collection(constants::STOCK_COLL_NAME);
 
-        let stock_doc = 
+        let mut stock_doc = 
             bson::to_document(&stock).map_err(RepositoryError::BsonSerializeError)?;
-        stock_coll.insert_one(stock_doc).await?;
-        Ok(true)
+        // Fee should be calculated by backend
+        stock_doc.remove("fee");
+        let res = stock_coll.insert_one(stock_doc).await?;
+        let new_id = res.inserted_id.as_object_id().map(|oid| oid.to_hex()).unwrap();
+        Ok(new_id)
     }
 
     pub async fn delete_stocks(&self, stock: &str) -> Result<bool, RepositoryError> {

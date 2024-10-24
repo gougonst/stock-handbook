@@ -9,7 +9,8 @@ use crate::constants;
 
 #[derive(Serialize, Debug)]
 pub struct Stock {
-    id: String, 
+    #[serde(skip_serializing_if = "Option::is_none")]
+    id: Option<String>, 
     username: String,
     code: String,
     shares: i32,
@@ -17,21 +18,59 @@ pub struct Stock {
     #[serde(with = "chrono_datetime_as_bson_datetime")]
     date: DateTime<Utc>,
     current_price: f64,
+    fee: i32, 
+}
+
+impl Stock {
+    pub fn new(
+        id: Option<String>, 
+        username: String, 
+        code: String, 
+        shares: i32, 
+        buy_price: f64, 
+        date: DateTime<Utc>, 
+        current_price: f64
+    ) -> Stock {
+        Stock {
+            id, 
+            username, 
+            code, 
+            shares, 
+            buy_price, 
+            date, 
+            current_price, 
+            fee: Stock::calc_fee(shares, buy_price), 
+        }
+    }
+
+    pub fn set_id(&mut self, id: Option<String>) {
+        self.id = id;
+    }
+
+    fn calc_fee(shares: i32, buy_price: f64) -> i32 {
+        let fee = (shares as f64 * buy_price * 0.001425).trunc() as i32;
+        match fee <= 20 {
+            true => {
+                20
+            }, 
+            false => {
+                fee
+            }
+        }
+    }
 }
 
 impl<'de> Deserialize<'de> for Stock {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where
             D: serde::Deserializer<'de> {
-        let mut doc = bson::Document::deserialize(deserializer)?;
+        let doc = bson::Document::deserialize(deserializer)?;
 
         debug!("Doc: {:?}", doc);
 
         let id = doc.get_object_id(constants::STOCK_COLL_ID_COL)
             .map(|oid| oid.to_hex())
-            .map_err(|e| serde::de::Error::custom(
-                format!("Failed to get oid: {}", e)
-            ))?;
+            .ok();
         let buy_price = doc.get_f64(constants::STOCK_COLL_BUY_PRICE_COL)
             .map_err(|e| serde::de::Error::custom(
                 format!("Failed to get buy price: {e}")
@@ -60,14 +99,14 @@ impl<'de> Deserialize<'de> for Stock {
                 format!("Failed to get username: {e}")
             ))?;
 
-        Ok(Stock {
+        Ok(Stock::new(
             id, 
             username, 
             code, 
             shares, 
             buy_price, 
             date, 
-            current_price
-        })
+            current_price, 
+        ))
     }
 }
