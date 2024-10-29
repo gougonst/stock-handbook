@@ -30,26 +30,26 @@ export default {
 
         const calcTotalPrice = () => {
             let totalPrice = 0;
-            items.value.forEach(stock => {
-                totalPrice += stock.buy_price * stock.shares + calcFee(stock);
+            items.value.forEach(inventory => {
+                totalPrice += inventory.buy_price * inventory.shares + calcFee(inventory);
             });
             return totalPrice.toFixed();
         }
 
-        const calcPrincipal = (stock) => {
-            return stock.buy_price * stock.shares;
+        const calcPrincipal = (inventory) => {
+            return inventory.buy_price * inventory.shares;
         }
 
-        const calcFee = (stock) => {
-            let fee = calcPrincipal(stock) * 0.001425;
+        const calcFee = (inventory) => {
+            let fee = calcPrincipal(inventory) * 0.001425;
             if (fee < 20) {
                 fee = 20;
             }
             return fee;
         }
 
-        const getPrincipalWithFee = (stock) => {
-            return calcPrincipal(stock).toFixed() + "+" + calcFee(stock).toFixed();
+        const getPrincipalWithFee = (inventory) => {
+            return calcPrincipal(inventory).toFixed() + "+" + calcFee(inventory).toFixed();
         }
 
         const pushInventories = (inventories) => {
