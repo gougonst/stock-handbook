@@ -6,5 +6,6 @@ pub fn stock_scope(cfg: &mut web::ServiceConfig) {
         web::scope("/stock")
             .route("/list", web::get().to(list_stocks))
             .route("/add", web::post().to(add_stock))
+            .route("/delete", web::post().to(delete_stock)),
     );
 }
