@@ -1,7 +1,7 @@
 use crate::database::repository_error::RepositoryError;
 use crate::{constants, models::user_model::UserModel};
 use mongodb::{
-    bson::{self, doc, to_document, Document},
+    bson::{self, doc, Document},
     Collection, Database,
 };
 use std::sync::Arc;

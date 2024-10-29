@@ -1,7 +1,7 @@
 use crate::database::repository_error::RepositoryError;
 use crate::{constants, models::stock_record_model::StockRecordModel};
 use futures::TryStreamExt;
-use log::{debug, error};
+use log::error;
 use mongodb::{
     bson::{self, doc, Document},
     Collection, Database,
@@ -17,7 +17,10 @@ impl StockRecordRepository {
         StockRecordRepository { db }
     }
 
-    pub async fn get_stock_records(&self, username: &str) -> Result<Vec<StockRecordModel>, RepositoryError> {
+    pub async fn get_stock_records(
+        &self,
+        username: &str,
+    ) -> Result<Vec<StockRecordModel>, RepositoryError> {
         let record_coll: Collection<Document> = self.db.collection(constants::RECORD_COLL_NAME);
 
         let mut result = record_coll
@@ -37,11 +40,14 @@ impl StockRecordRepository {
             })?;
             records.push(record);
         }
-        
+
         Ok(records)
     }
 
-    pub async fn add_stock_record(&self, record: &StockRecordModel) -> Result<String, RepositoryError> {
+    pub async fn add_stock_record(
+        &self,
+        record: &StockRecordModel,
+    ) -> Result<String, RepositoryError> {
         let record_coll: Collection<Document> = self.db.collection(constants::RECORD_COLL_NAME);
 
         let mut record_doc =

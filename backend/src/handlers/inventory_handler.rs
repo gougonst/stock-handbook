@@ -1,9 +1,9 @@
-use crate::models::stock_record_model::StockRecordModel;
 use crate::models::inventory_model::InventoryModel;
+use crate::models::stock_record_model::{StockRecordAction, StockRecordModel};
 use crate::{app_state::AppState, constants};
 use actix_web::{web, HttpResponse, Responder};
 use chrono::{DateTime, Utc};
-use log::{debug, error, info};
+use log::{error, info};
 use serde::Deserialize;
 use serde_json;
 use std::collections::HashMap;
@@ -23,8 +23,14 @@ pub struct InventoryInfo {
     current_price: f64,
 }
 
-pub async fn list_inventories(info: web::Query<UserInfo>, data: web::Data<AppState>) -> impl Responder {
-    info!("Handle 'list_inventories' request with parameter: {:?}", info);
+pub async fn list_inventories(
+    info: web::Query<UserInfo>,
+    data: web::Data<AppState>,
+) -> impl Responder {
+    info!(
+        "Handle 'list_inventories' request with parameter: {:?}",
+        info
+    );
 
     match data.record_repo.get_stock_records(&info.username).await {
         Ok(records) => {
@@ -64,6 +70,7 @@ pub async fn add_inventory(
 
     let mut new_record: StockRecordModel = StockRecordModel::new(
         None,
+        StockRecordAction::Add,
         info.username.clone(),
         info.code.clone(),
         info.shares,

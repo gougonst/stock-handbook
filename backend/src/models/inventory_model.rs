@@ -1,7 +1,6 @@
 use crate::models::stock_record_model::StockRecordModel;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
-use log::debug;
 
 #[derive(Serialize, Debug, Clone)]
 pub struct InventoryModel {

@@ -1,16 +1,37 @@
-use bson::{from_bson, Bson};
 use chrono::prelude::*;
 use chrono::Utc;
-use log::debug;
+use core::fmt;
 use mongodb::bson::serde_helpers::chrono_datetime_as_bson_datetime;
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 use crate::constants;
+use crate::constants::ACTION_ADD;
+use crate::constants::ACTION_DELETE;
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum StockRecordAction {
+    Add,
+    Delete,
+}
+
+impl FromStr for StockRecordAction {
+    type Err = fmt::Error;
+
+    fn from_str(action: &str) -> Result<Self, <Self as FromStr>::Err> {
+        match action {
+            ACTION_ADD => Ok(StockRecordAction::Add),
+            ACTION_DELETE => Ok(StockRecordAction::Delete),
+            _ => Err(fmt::Error),
+        }
+    }
+}
 
 #[derive(Serialize, Debug)]
 pub struct StockRecordModel {
     #[serde(skip_serializing_if = "Option::is_none")]
     id: Option<String>,
+    action: StockRecordAction,
     username: String,
     code: String,
     shares: i32,
@@ -25,6 +46,7 @@ pub struct StockRecordModel {
 impl StockRecordModel {
     pub fn new(
         id: Option<String>,
+        action: StockRecordAction,
         username: String,
         code: String,
         shares: i32,
@@ -34,6 +56,7 @@ impl StockRecordModel {
     ) -> StockRecordModel {
         StockRecordModel {
             id,
+            action,
             username,
             code,
             shares,
@@ -97,12 +120,16 @@ impl<'de> Deserialize<'de> for StockRecordModel {
     {
         let doc = bson::Document::deserialize(deserializer)?;
 
-        debug!("Doc: {:?}", doc);
-
         let id = doc
             .get_object_id(constants::RECORD_COLL_ID_COL)
             .map(|oid| oid.to_hex())
             .ok();
+        let action: StockRecordAction = StockRecordAction::from_str(
+            doc.get_str(constants::RECORD_COLL_ACTION_COL)
+                .map_err(|e| serde::de::Error::custom(format!("Failed to get action: {e}")))?,
+        )
+        .map_err(|e| serde::de::Error::custom(format!("Failed to parse action: {e}")))?;
+
         let buy_price = doc
             .get_f64(constants::RECORD_COLL_BUY_PRICE_COL)
             .map_err(|e| serde::de::Error::custom(format!("Failed to get buy price: {e}")))?;
@@ -127,6 +154,7 @@ impl<'de> Deserialize<'de> for StockRecordModel {
 
         Ok(StockRecordModel::new(
             id,
+            action,
             username,
             code,
             shares,
