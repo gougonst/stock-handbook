@@ -16,11 +16,11 @@
         </thead>
         <tbody>
             <tr v-for="(item, index) in items" :key="index">
-                <td><button v-on:click="deleteItem">-</button></td>
+                <td><button v-on:click="deleteItem(item.id)">-</button></td>
                 <td>{{ item.code }}</td>
                 <td>{{ item.shares }}</td>
                 <td>{{ item.buy_price }}</td>
-                <td>{{ item.principal }}</td>
+                <td>{{ item.principal_with_fee }}</td>
                 <td>{{ item.date }}</td>
                 <td>{{ item.current_price }}</td>
                 <td>{{ item.profit_loss }}</td>
@@ -31,8 +31,8 @@
                 <td><button v-on:click="addItem">+</button></td>
                 <td><input v-model="newItem.code" /></td>
                 <td><input v-model="newItem.shares" /></td>
-                <td><input v-model="newItem.buyPrice" /></td>
-                <td><input v-model="newItem.principal" /></td>
+                <td><input v-model="newItem.buy_price" /></td>
+                <td><p>{{ getPrincipalWithFee(newItem) }}</p></td>
                 <td>
                     <el-date-picker
                         v-model="newItem.date"
@@ -41,9 +41,9 @@
                         format="YYYY-MM-DD">
                     </el-date-picker>
                 </td>
-                <td><input v-model="newItem.currentPrice" /></td>
-                <td><input v-model="newItem.profitLoss" /></td>
-                <td><input v-model="newItem.returnRate" /></td>
+                <td><input v-model="newItem.current_price" /></td>
+                <td><input v-model="newItem.profit_loss" /></td>
+                <td><input v-model="newItem.return_rate" /></td>
                 <td><input v-model="newItem.balance" /></td>
             </tr>
         </tbody>
@@ -52,6 +52,6 @@
 <div class="container">
     <div class="d-flex">
         <p class="me-5">總筆數: {{ items.length }}</p>
-        <p>總額: {{ totalPrice }}</p>
+        <p>總額: {{ calcTotalPrice() }}</p>
     </div>
 </div>

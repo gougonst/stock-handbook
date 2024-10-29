@@ -1,5 +1,5 @@
 import { useStore } from "vuex";
-import { ADD_INVENTORY_API, ADD_INVENTORY_ERROR, API_BASE_URL, API_TIMEOUT, LIST_INVENTORIES_API, LIST_INVENTORY_ERROR } from '@/constants';
+import { ADD_INVENTORY_API, ADD_INVENTORY_ERROR, API_BASE_URL, API_TIMEOUT, DELETE_INVENTORY_API, INTERNAL_ERROR, INVENTORY_NOT_EXIST, LIST_INVENTORIES_API, LIST_INVENTORY_ERROR, NON_EXIST_STATUS_CODE } from '@/constants';
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
 import emitter from "@/utils/mitt";
@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 
 const listInventoriesUrl = `${API_BASE_URL}${LIST_INVENTORIES_API}`;
 const addInventoryUrl = `${API_BASE_URL}${ADD_INVENTORY_API}`;
+const deleteInventoryUrl = `${API_BASE_URL}${DELETE_INVENTORY_API}`;
 
 export default {
     name: "InventoryView", 
@@ -16,13 +17,10 @@ export default {
         const getDefaultNewItem = () => ({
             'code': '', 
             'shares': 0, 
-            'buyPrice': 0, 
-            'principal': '', 
+            'buy_price': 0, 
+            'principal_with_fee': '',  
             'date': '', 
-            'currentPrice': 0, 
-            'profitLoss': 0, 
-            'returnRate': 0, 
-            'balance': 0
+            'current_price': 0
         });
 
         const newItem = ref(getDefaultNewItem());
@@ -30,10 +28,48 @@ export default {
         const totalRecord = ref(0);
         const totalPrice = ref(0);
 
-        const pushItem = (stock) => {
-            const date = new Date(parseInt(stock.date.$date.$numberLong, 10));
-            stock.date = format(date, "yyyy-MM-dd");
-            items.value.push(stock);
+        const calcTotalPrice = () => {
+            let totalPrice = 0;
+            items.value.forEach(stock => {
+                totalPrice += stock.buy_price * stock.shares + calcFee(stock);
+            });
+            return totalPrice.toFixed();
+        }
+
+        const calcPrincipal = (stock) => {
+            return stock.buy_price * stock.shares;
+        }
+
+        const calcFee = (stock) => {
+            let fee = calcPrincipal(stock) * 0.001425;
+            if (fee < 20) {
+                fee = 20;
+            }
+            return fee;
+        }
+
+        const getPrincipalWithFee = (stock) => {
+            return calcPrincipal(stock).toFixed() + "+" + calcFee(stock).toFixed();
+        }
+
+        const pushInventories = (inventories) => {
+            items.value = [];
+            for (const key in inventories) {
+                console.log(`key: ${key}`);
+                console.log(inventories[key]);
+                let inventory = {
+                    code: key, 
+                    shares: inventories[key].shares, 
+                    buy_price: inventories[key].buy_price.toFixed(2), 
+                    date: format(inventories[key].date, "yyyy-MM-dd"), 
+                    current_price: inventories[key].current_price, 
+                    fee: inventories[key].fee, 
+                    principal: inventories[key].principal, 
+                    principal_with_fee: inventories[key].principal.toFixed() + "+" + inventories[key].fee
+                }
+                console.log(`inventory: ${inventory}`);
+                items.value.push(inventory);
+            }
         }
 
         const listItems = async () => {
@@ -47,11 +83,12 @@ export default {
                         "Content-Type": "application/json"
                     }
                 });
-
-                items.value = [];
-                resp.data.forEach(stock => {
-                    pushItem(stock);
-                });
+                
+                console.log("resp");
+                console.log(resp);
+                pushInventories(resp.data);
+                console.log("items");
+                console.log(items.value);
             } catch (err) {
                 emitter.emit("show-alert", {
                     type: "danger", 
@@ -63,13 +100,13 @@ export default {
         const addItem = async () => {
             try {
                 const formattedDate = new Date(newItem.value.date).toISOString();
-                const resp = await axios.post(addInventoryUrl, {
+                await axios.post(addInventoryUrl, {
                     username: store.state.username, 
                     code: newItem.value.code, 
                     shares: parseInt(newItem.value.shares), 
-                    buy_price: parseFloat(newItem.value.buyPrice), 
+                    buy_price: parseFloat(newItem.value.buy_price), 
                     date: formattedDate, 
-                    current_price: parseFloat(newItem.value.currentPrice)
+                    current_price: parseFloat(newItem.value.current_price)
                 }, {
                     timeout: API_TIMEOUT, 
                     headers: {
@@ -77,7 +114,7 @@ export default {
                     }
                 });
 
-                pushItem(resp.data);
+                listItems();
                 newItem.value = getDefaultNewItem();
             } catch(err) {
                 emitter.emit("show-alert", {
@@ -87,8 +124,47 @@ export default {
             }
         };
 
-        const deleteItem = () => {
+        const deleteItem = async (id) => {
+            let alertType = "";
+            let alertMessage = "";
+            try {
+                await axios.post(deleteInventoryUrl, {
+                    id: id
+                }, {
+                    timeout: API_TIMEOUT, 
+                    headers: {
+                        "content-Type": "application/json"
+                    }
+                });
 
+                items.value = items.value.filter(item => item.id !== id);
+            } catch(err) {
+                if (err.response) {
+                    switch (err.response.status) {
+                        case 404:
+                            alertType = "dander";
+                            alertMessage = INVENTORY_NOT_EXIST;
+                            break;
+                        case 500:
+                            alertType = "dander";
+                            alertMessage = INTERNAL_ERROR;
+                            break;
+                        default:
+                            alertType = "dander";
+                            alertMessage = NON_EXIST_STATUS_CODE;
+                            break;
+                    }
+                } else {
+                    alertType = "dander";
+                    alertMessage = INTERNAL_ERROR;
+                    console.log("Frontend error: ", err);
+                }
+
+                emitter.emit("show-alert", {
+                    type: alertType, 
+                    message: alertMessage
+                });
+            }
         };
 
         onMounted(() => {
@@ -101,7 +177,9 @@ export default {
             totalRecord, 
             totalPrice, 
             addItem, 
-            deleteItem
+            calcTotalPrice, 
+            deleteItem, 
+            getPrincipalWithFee
         };
     }
 }
