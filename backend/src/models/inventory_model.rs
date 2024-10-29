@@ -1,10 +1,10 @@
-use crate::models::stock::Stock;
+use crate::models::stock_model::StockModel;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use log::debug;
 
 #[derive(Serialize, Debug, Clone)]
-pub struct Inventory {
+pub struct InventoryModel {
     shares: i32,
     buy_price: f64,
     date: DateTime<Utc>,
@@ -13,9 +13,9 @@ pub struct Inventory {
     principal: f64,
 }
 
-impl Inventory {
-    pub fn from_stock(stock: &Stock) -> Inventory {
-        Inventory {
+impl InventoryModel {
+    pub fn from_stock(stock: &StockModel) -> InventoryModel {
+        InventoryModel {
             shares: stock.get_shares(),
             buy_price: stock.get_buy_price(),
             date: stock.get_date().clone(),
@@ -25,7 +25,7 @@ impl Inventory {
         }
     }
 
-    pub fn add_stock(&mut self, stock: &Stock) {
+    pub fn add_stock(&mut self, stock: &StockModel) {
         self.shares += stock.get_shares();
         self.principal += stock.get_principal();
         self.fee += stock.get_fee();

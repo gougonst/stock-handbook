@@ -1,14 +1,14 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct User {
+pub struct UserModel {
     username: String,
     password: String,
 }
 
-impl User {
+impl UserModel {
     pub fn new(username: String, password: String) -> Self {
-        User { username, password }
+        UserModel { username, password }
     }
 
     pub fn username(&self) -> &str {

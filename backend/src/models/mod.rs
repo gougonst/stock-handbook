@@ -1,3 +1,3 @@
-pub mod inventory;
-pub mod stock;
-pub mod user;
+pub mod inventory_model;
+pub mod stock_model;
+pub mod user_model;

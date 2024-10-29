@@ -1,2 +1,2 @@
-pub mod auth;
-pub mod stocks;
+pub mod auth_handler;
+pub mod inventory_handler;

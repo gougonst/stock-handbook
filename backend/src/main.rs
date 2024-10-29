@@ -53,8 +53,8 @@ async fn main() -> std::io::Result<()> {
                     .allowed_headers(vec![http::header::CONTENT_TYPE, http::header::ACCEPT]),
             )
             .app_data(data.clone())
-            .configure(routes::auth::auth_scope)
-            .configure(routes::stock::stock_scope)
+            .configure(routes::auth_route::auth_scope)
+            .configure(routes::inventory_route::inventory_scope)
     })
     .bind(("0.0.0.0", 8081))?;
 

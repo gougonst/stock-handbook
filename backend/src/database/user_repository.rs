@@ -1,5 +1,5 @@
 use crate::database::repository_error::RepositoryError;
-use crate::{constants, models::user::User};
+use crate::{constants, models::user_model::UserModel};
 use mongodb::{
     bson::{self, doc, to_document, Document},
     Collection, Database,
@@ -16,8 +16,8 @@ impl UserRepository {
         UserRepository { db }
     }
 
-    pub async fn check_user(&self, user: &User) -> Result<bool, RepositoryError> {
-        let db_user: User = match self.get_user(user.username()).await {
+    pub async fn check_user(&self, user: &UserModel) -> Result<bool, RepositoryError> {
+        let db_user: UserModel = match self.get_user(user.username()).await {
             Ok(Some(db_user)) => db_user,
             Ok(None) => return Err(RepositoryError::UserNotFound),
             Err(e) => return Err(e),
@@ -26,7 +26,7 @@ impl UserRepository {
         Ok(user.password() == db_user.password())
     }
 
-    pub async fn create_user(&self, user: &User) -> Result<bool, RepositoryError> {
+    pub async fn create_user(&self, user: &UserModel) -> Result<bool, RepositoryError> {
         match self.get_user(user.username()).await? {
             Some(_) => Ok(false),
             None => {
@@ -40,7 +40,7 @@ impl UserRepository {
         }
     }
 
-    async fn get_user(&self, username: &str) -> Result<Option<User>, RepositoryError> {
+    async fn get_user(&self, username: &str) -> Result<Option<UserModel>, RepositoryError> {
         let user_coll: Collection<Document> = self.db.collection(constants::USER_COLL_NAME);
 
         let user_doc = user_coll
@@ -50,7 +50,7 @@ impl UserRepository {
 
         match user_doc {
             Some(user_doc) => {
-                let user: User =
+                let user: UserModel =
                     bson::from_document(user_doc).map_err(RepositoryError::BsonDeserializeError)?;
                 Ok(Some(user))
             }

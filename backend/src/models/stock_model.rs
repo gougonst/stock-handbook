@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::constants;
 
 #[derive(Serialize, Debug)]
-pub struct Stock {
+pub struct StockModel {
     #[serde(skip_serializing_if = "Option::is_none")]
     id: Option<String>,
     username: String,
@@ -22,7 +22,7 @@ pub struct Stock {
     principal: f64,
 }
 
-impl Stock {
+impl StockModel {
     pub fn new(
         id: Option<String>,
         username: String,
@@ -31,8 +31,8 @@ impl Stock {
         buy_price: f64,
         date: DateTime<Utc>,
         current_price: f64,
-    ) -> Stock {
-        Stock {
+    ) -> StockModel {
+        StockModel {
             id,
             username,
             code,
@@ -40,8 +40,8 @@ impl Stock {
             buy_price,
             date,
             current_price,
-            fee: Stock::calc_fee(shares, buy_price),
-            principal: Stock::calc_principal(shares, buy_price),
+            fee: StockModel::calc_fee(shares, buy_price),
+            principal: StockModel::calc_principal(shares, buy_price),
         }
     }
 
@@ -75,8 +75,8 @@ impl Stock {
 
     pub fn set_shares(&mut self, shares: i32) {
         self.shares = shares;
-        self.principal = Stock::calc_principal(shares, self.buy_price);
-        self.fee = Stock::calc_fee(shares, self.buy_price);
+        self.principal = StockModel::calc_principal(shares, self.buy_price);
+        self.fee = StockModel::calc_fee(shares, self.buy_price);
     }
 
     pub fn get_buy_price(&self) -> f64 {
@@ -85,8 +85,8 @@ impl Stock {
 
     pub fn set_buy_price(&mut self, buy_price: f64) {
         self.buy_price = buy_price;
-        self.principal = Stock::calc_principal(self.shares, buy_price);
-        self.fee = Stock::calc_fee(self.shares, buy_price);
+        self.principal = StockModel::calc_principal(self.shares, buy_price);
+        self.fee = StockModel::calc_fee(self.shares, buy_price);
     }
 
     pub fn calc_principal(shares: i32, buy_price: f64) -> f64 {
@@ -94,7 +94,7 @@ impl Stock {
     }
 
     fn calc_fee(shares: i32, buy_price: f64) -> i32 {
-        let fee = (Stock::calc_principal(shares, buy_price) * 0.001425).trunc() as i32;
+        let fee = (StockModel::calc_principal(shares, buy_price) * 0.001425).trunc() as i32;
         match fee <= 20 {
             true => 20,
             false => fee,
@@ -102,7 +102,7 @@ impl Stock {
     }
 }
 
-impl<'de> Deserialize<'de> for Stock {
+impl<'de> Deserialize<'de> for StockModel {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -137,7 +137,7 @@ impl<'de> Deserialize<'de> for Stock {
             .map(|s| s.to_string())
             .map_err(|e| serde::de::Error::custom(format!("Failed to get username: {e}")))?;
 
-        Ok(Stock::new(
+        Ok(StockModel::new(
             id,
             username,
             code,

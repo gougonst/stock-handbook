@@ -1,7 +1,7 @@
 use crate::app_state::AppState;
 use crate::constants;
 use crate::database::repository_error::RepositoryError;
-use crate::models::user::User;
+use crate::models::user_model::UserModel;
 use actix_web::{web, HttpResponse, Responder};
 use log::{debug, error, info};
 use serde::Deserialize;
@@ -14,7 +14,7 @@ pub struct LoginInfo {
 
 pub async fn login(info: web::Json<LoginInfo>, data: web::Data<AppState>) -> impl Responder {
     info!("Handle 'login' request");
-    let user = User::new(info.username.clone(), info.password.clone());
+    let user = UserModel::new(info.username.clone(), info.password.clone());
     debug!(
         "Username: {}, Password: {}",
         user.username(),
@@ -40,7 +40,7 @@ pub async fn logon(info: web::Json<LoginInfo>, data: web::Data<AppState>) -> imp
         "Handle 'logon' request with Username: {}, Password: {}",
         info.username, info.password
     );
-    let user = User::new(info.username.clone(), info.password.clone());
+    let user = UserModel::new(info.username.clone(), info.password.clone());
 
     match data.user_repo.create_user(&user).await {
         Ok(result) => {

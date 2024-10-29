@@ -1,4 +1,4 @@
-use crate::handlers::auth::*;
+use crate::handlers::auth_handler::*;
 use actix_web::web;
 
 pub fn auth_scope(cfg: &mut web::ServiceConfig) {

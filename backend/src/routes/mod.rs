@@ -1,2 +1,2 @@
-pub mod auth;
-pub mod stock;
+pub mod auth_route;
+pub mod inventory_route;

@@ -1,10 +1,12 @@
-use crate::models::stock::Stock;
+use crate::models::stock_model::StockModel;
+use crate::models::inventory_model::InventoryModel;
 use crate::{app_state::AppState, constants};
 use actix_web::{web, HttpResponse, Responder};
 use chrono::{DateTime, Utc};
 use log::{debug, error, info};
 use serde::Deserialize;
 use serde_json;
+use std::collections::HashMap;
 
 #[derive(Debug, Deserialize)]
 pub struct UserInfo {
@@ -21,18 +23,13 @@ pub struct InventoryInfo {
     current_price: f64,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct StockIdInfo {
-    id: String,
-}
-
-pub async fn list_stocks(info: web::Query<UserInfo>, data: web::Data<AppState>) -> impl Responder {
-    info!("Handle 'list_stocks' request with parameter: {:?}", info);
+pub async fn list_inventories(info: web::Query<UserInfo>, data: web::Data<AppState>) -> impl Responder {
+    info!("Handle 'list_inventories' request with parameter: {:?}", info);
 
     match data.stock_repo.get_stocks(&info.username).await {
         Ok(stocks) => {
-            debug!("Freddy, inventories: {:?}", stocks);
-            let resp = serde_json::to_string(&stocks).unwrap();
+            let inventories = create_inventories(stocks);
+            let resp = serde_json::to_string(&inventories).unwrap();
             HttpResponse::Ok().body(resp)
         }
         Err(e) => {
@@ -42,13 +39,30 @@ pub async fn list_stocks(info: web::Query<UserInfo>, data: web::Data<AppState>) 
     }
 }
 
-pub async fn add_stock(
+fn create_inventories(stocks: Vec<StockModel>) -> HashMap<String, InventoryModel> {
+    let mut grouped_stocks = HashMap::new();
+
+    for stock in stocks {
+        let code = stock.get_code();
+
+        if !grouped_stocks.contains_key(code) {
+            grouped_stocks.insert(code.to_string(), InventoryModel::from_stock(&stock));
+        } else {
+            if let Some(grouped_stock) = grouped_stocks.get_mut(code) {
+                grouped_stock.add_stock(&stock);
+            }
+        }
+    }
+    grouped_stocks
+}
+
+pub async fn add_inventory(
     info: web::Json<InventoryInfo>,
     data: web::Data<AppState>,
 ) -> impl Responder {
-    info!("Handle 'add_stock' request with parameter: {:?}", info);
+    info!("Handle 'add_inventory' request with parameter: {:?}", info);
 
-    let mut new_stock: Stock = Stock::new(
+    let mut new_stock: StockModel = StockModel::new(
         None,
         info.username.clone(),
         info.code.clone(),
@@ -66,28 +80,6 @@ pub async fn add_stock(
         Err(e) => {
             error!("Add stock to DB failed: {}", e);
             HttpResponse::InternalServerError().body(constants::HTTP_INTERNAL_ERROR)
-        }
-    }
-}
-
-pub async fn delete_stock(
-    info: web::Json<StockIdInfo>,
-    data: web::Data<AppState>,
-) -> impl Responder {
-    info!("Handle 'delete_stock' request with parameter: {:?}", info);
-
-    match data.stock_repo.delete_stocks(&info.id).await {
-        Ok(true) => {
-            debug!("Delete stock with id: {} successfully", info.id);
-            HttpResponse::Ok()
-        }
-        Ok(false) => {
-            error!("Delete stock failed, cannot find id: {}", info.id);
-            HttpResponse::NotFound()
-        }
-        Err(e) => {
-            error!("Delete stock from DB failed: {}", e);
-            HttpResponse::InternalServerError()
         }
     }
 }
