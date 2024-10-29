@@ -1,7 +1,7 @@
 use actix_cors::Cors;
 use actix_web::{http, web, App, HttpServer};
 use app_state::AppState;
-use database::stock_repository::StockRepository;
+use database::stock_record_repository::StockRecordRepository;
 use database::user_repository::UserRepository;
 use env_logger::Env;
 use log::info;
@@ -37,10 +37,10 @@ async fn main() -> std::io::Result<()> {
         panic!("{}", format!("{}: {}", constants::INIT_DB_ERR, e));
     });
     let user_repo = Arc::new(UserRepository::new(Arc::clone(&db)));
-    let stock_repo = Arc::new(StockRepository::new(Arc::clone(&db)));
+    let record_repo = Arc::new(StockRecordRepository::new(Arc::clone(&db)));
     let app_state = AppState {
         user_repo,
-        stock_repo,
+        record_repo,
     };
     let data = web::Data::new(app_state);
 

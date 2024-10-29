@@ -1,4 +1,4 @@
-use crate::models::stock_model::StockModel;
+use crate::models::stock_record_model::StockRecordModel;
 use crate::models::inventory_model::InventoryModel;
 use crate::{app_state::AppState, constants};
 use actix_web::{web, HttpResponse, Responder};
@@ -26,34 +26,34 @@ pub struct InventoryInfo {
 pub async fn list_inventories(info: web::Query<UserInfo>, data: web::Data<AppState>) -> impl Responder {
     info!("Handle 'list_inventories' request with parameter: {:?}", info);
 
-    match data.stock_repo.get_stocks(&info.username).await {
-        Ok(stocks) => {
-            let inventories = create_inventories(stocks);
+    match data.record_repo.get_stock_records(&info.username).await {
+        Ok(records) => {
+            let inventories = create_inventories(records);
             let resp = serde_json::to_string(&inventories).unwrap();
             HttpResponse::Ok().body(resp)
         }
         Err(e) => {
-            error!("Get stocks from DB error: {}", e);
+            error!("Get stock records from DB error: {}", e);
             HttpResponse::InternalServerError().body(constants::HTTP_INTERNAL_ERROR)
         }
     }
 }
 
-fn create_inventories(stocks: Vec<StockModel>) -> HashMap<String, InventoryModel> {
-    let mut grouped_stocks = HashMap::new();
+fn create_inventories(records: Vec<StockRecordModel>) -> HashMap<String, InventoryModel> {
+    let mut inventories = HashMap::new();
 
-    for stock in stocks {
-        let code = stock.get_code();
+    for record in records {
+        let code = record.get_code();
 
-        if !grouped_stocks.contains_key(code) {
-            grouped_stocks.insert(code.to_string(), InventoryModel::from_stock(&stock));
+        if !inventories.contains_key(code) {
+            inventories.insert(code.to_string(), InventoryModel::from_stock_record(&record));
         } else {
-            if let Some(grouped_stock) = grouped_stocks.get_mut(code) {
-                grouped_stock.add_stock(&stock);
+            if let Some(inventory) = inventories.get_mut(code) {
+                inventory.add_stock_record(&record);
             }
         }
     }
-    grouped_stocks
+    inventories
 }
 
 pub async fn add_inventory(
@@ -62,7 +62,7 @@ pub async fn add_inventory(
 ) -> impl Responder {
     info!("Handle 'add_inventory' request with parameter: {:?}", info);
 
-    let mut new_stock: StockModel = StockModel::new(
+    let mut new_record: StockRecordModel = StockRecordModel::new(
         None,
         info.username.clone(),
         info.code.clone(),
@@ -71,14 +71,14 @@ pub async fn add_inventory(
         info.date,
         info.current_price,
     );
-    match data.stock_repo.add_stock(&new_stock).await {
+    match data.record_repo.add_stock_record(&new_record).await {
         Ok(oid) => {
-            new_stock.set_id(Some(oid));
-            let resp = serde_json::to_string(&new_stock).unwrap();
+            new_record.set_id(Some(oid));
+            let resp = serde_json::to_string(&new_record).unwrap();
             HttpResponse::Ok().body(resp)
         }
         Err(e) => {
-            error!("Add stock to DB failed: {}", e);
+            error!("Add stock record to DB failed: {}", e);
             HttpResponse::InternalServerError().body(constants::HTTP_INTERNAL_ERROR)
         }
     }

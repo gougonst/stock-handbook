@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::constants;
 
 #[derive(Serialize, Debug)]
-pub struct StockModel {
+pub struct StockRecordModel {
     #[serde(skip_serializing_if = "Option::is_none")]
     id: Option<String>,
     username: String,
@@ -22,7 +22,7 @@ pub struct StockModel {
     principal: f64,
 }
 
-impl StockModel {
+impl StockRecordModel {
     pub fn new(
         id: Option<String>,
         username: String,
@@ -31,8 +31,8 @@ impl StockModel {
         buy_price: f64,
         date: DateTime<Utc>,
         current_price: f64,
-    ) -> StockModel {
-        StockModel {
+    ) -> StockRecordModel {
+        StockRecordModel {
             id,
             username,
             code,
@@ -40,8 +40,8 @@ impl StockModel {
             buy_price,
             date,
             current_price,
-            fee: StockModel::calc_fee(shares, buy_price),
-            principal: StockModel::calc_principal(shares, buy_price),
+            fee: StockRecordModel::calc_fee(shares, buy_price),
+            principal: StockRecordModel::calc_principal(shares, buy_price),
         }
     }
 
@@ -73,20 +73,8 @@ impl StockModel {
         self.shares
     }
 
-    pub fn set_shares(&mut self, shares: i32) {
-        self.shares = shares;
-        self.principal = StockModel::calc_principal(shares, self.buy_price);
-        self.fee = StockModel::calc_fee(shares, self.buy_price);
-    }
-
     pub fn get_buy_price(&self) -> f64 {
         self.buy_price
-    }
-
-    pub fn set_buy_price(&mut self, buy_price: f64) {
-        self.buy_price = buy_price;
-        self.principal = StockModel::calc_principal(self.shares, buy_price);
-        self.fee = StockModel::calc_fee(self.shares, buy_price);
     }
 
     pub fn calc_principal(shares: i32, buy_price: f64) -> f64 {
@@ -94,7 +82,7 @@ impl StockModel {
     }
 
     fn calc_fee(shares: i32, buy_price: f64) -> i32 {
-        let fee = (StockModel::calc_principal(shares, buy_price) * 0.001425).trunc() as i32;
+        let fee = (StockRecordModel::calc_principal(shares, buy_price) * 0.001425).trunc() as i32;
         match fee <= 20 {
             true => 20,
             false => fee,
@@ -102,7 +90,7 @@ impl StockModel {
     }
 }
 
-impl<'de> Deserialize<'de> for StockModel {
+impl<'de> Deserialize<'de> for StockRecordModel {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -112,32 +100,32 @@ impl<'de> Deserialize<'de> for StockModel {
         debug!("Doc: {:?}", doc);
 
         let id = doc
-            .get_object_id(constants::STOCK_COLL_ID_COL)
+            .get_object_id(constants::RECORD_COLL_ID_COL)
             .map(|oid| oid.to_hex())
             .ok();
         let buy_price = doc
-            .get_f64(constants::STOCK_COLL_BUY_PRICE_COL)
+            .get_f64(constants::RECORD_COLL_BUY_PRICE_COL)
             .map_err(|e| serde::de::Error::custom(format!("Failed to get buy price: {e}")))?;
         let code = doc
-            .get_str(constants::STOCK_COLL_CODE_COL)
+            .get_str(constants::RECORD_COLL_CODE_COL)
             .map(|s| s.to_string())
             .map_err(|e| serde::de::Error::custom(format!("Failed to get code: {e}")))?;
         let current_price = doc
-            .get_f64(constants::STOCK_COLL_CURRENT_PRICE_COL)
+            .get_f64(constants::RECORD_COLL_CURRENT_PRICE_COL)
             .map_err(|e| serde::de::Error::custom(format!("Failed to get current price: {e}")))?;
         let date = doc
-            .get_datetime(constants::STOCK_COLL_DATE_COL)
+            .get_datetime(constants::RECORD_COLL_DATE_COL)
             .map(|dt| dt.to_chrono())
             .map_err(|e| serde::de::Error::custom(format!("Failed to get date: {e}")))?;
         let shares = doc
-            .get_i32(constants::STOCK_COLL_SHARES_COL)
+            .get_i32(constants::RECORD_COLL_SHARES_COL)
             .map_err(|e| serde::de::Error::custom(format!("Failed to get shares: {e}")))?;
         let username = doc
-            .get_str(constants::STOCK_COLL_USERNAME_COL)
+            .get_str(constants::RECORD_COLL_USERNAME_COL)
             .map(|s| s.to_string())
             .map_err(|e| serde::de::Error::custom(format!("Failed to get username: {e}")))?;
 
-        Ok(StockModel::new(
+        Ok(StockRecordModel::new(
             id,
             username,
             code,

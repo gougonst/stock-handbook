@@ -1,4 +1,4 @@
-use crate::models::stock_model::StockModel;
+use crate::models::stock_record_model::StockRecordModel;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use log::debug;
@@ -14,27 +14,27 @@ pub struct InventoryModel {
 }
 
 impl InventoryModel {
-    pub fn from_stock(stock: &StockModel) -> InventoryModel {
+    pub fn from_stock_record(record: &StockRecordModel) -> InventoryModel {
         InventoryModel {
-            shares: stock.get_shares(),
-            buy_price: stock.get_buy_price(),
-            date: stock.get_date().clone(),
-            current_price: stock.get_current_price(),
-            fee: stock.get_fee(),
-            principal: stock.get_principal(),
+            shares: record.get_shares(),
+            buy_price: record.get_buy_price(),
+            date: record.get_date().clone(),
+            current_price: record.get_current_price(),
+            fee: record.get_fee(),
+            principal: record.get_principal(),
         }
     }
 
-    pub fn add_stock(&mut self, stock: &StockModel) {
-        self.shares += stock.get_shares();
-        self.principal += stock.get_principal();
-        self.fee += stock.get_fee();
+    pub fn add_stock_record(&mut self, record: &StockRecordModel) {
+        self.shares += record.get_shares();
+        self.principal += record.get_principal();
+        self.fee += record.get_fee();
         self.buy_price = self.principal / self.shares as f64;
 
-        self.date = if self.date > stock.get_date() {
+        self.date = if self.date > record.get_date() {
             self.date
         } else {
-            stock.get_date()
+            record.get_date()
         };
     }
 }
