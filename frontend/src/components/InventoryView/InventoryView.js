@@ -1,5 +1,5 @@
 import { useStore } from "vuex";
-import { ADD_INVENTORY_API, ADD_INVENTORY_ERROR, API_BASE_URL, API_TIMEOUT, DELETE_INVENTORY_API, INTERNAL_ERROR, INVENTORY_NOT_EXIST, LIST_INVENTORIES_API, LIST_INVENTORY_ERROR, NON_EXIST_STATUS_CODE } from '@/constants';
+import { ADD_INVENTORY_API, ADD_INVENTORY_ERROR, API_BASE_URL, API_TIMEOUT, DELETE_INVENTORY_API, LIST_INVENTORIES_API, LIST_INVENTORY_ERROR, INTERNAL_ERROR, NON_EXIST_STATUS_CODE } from '@/constants';
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
 import emitter from "@/utils/mitt";
@@ -17,27 +17,30 @@ export default {
         const getDefaultNewItem = () => ({
             'code': '', 
             'shares': 0, 
-            'buy_price': 0, 
+            'transaction_price': 0, 
             'principal_with_fee': '',  
             'date': '', 
             'current_price': 0
         });
 
         const newItem = ref(getDefaultNewItem());
+        const heldItem = ref(getDefaultNewItem());
+        const sellItem = ref(getDefaultNewItem());
         const items = ref([]);
         const totalRecord = ref(0);
         const totalPrice = ref(0);
+        const isSellVisible = ref(false);
 
         const calcTotalPrice = () => {
             let totalPrice = 0;
             items.value.forEach(inventory => {
-                totalPrice += inventory.buy_price * inventory.shares + calcFee(inventory);
+                totalPrice += inventory.transaction_price * inventory.shares + calcFee(inventory);
             });
             return totalPrice.toFixed();
         }
 
         const calcPrincipal = (inventory) => {
-            return inventory.buy_price * inventory.shares;
+            return inventory.transaction_price * inventory.shares;
         }
 
         const calcFee = (inventory) => {
@@ -60,7 +63,7 @@ export default {
                 let inventory = {
                     code: key, 
                     shares: inventories[key].shares, 
-                    buy_price: inventories[key].buy_price.toFixed(2), 
+                    transaction_price: inventories[key].transaction_price.toFixed(2), 
                     date: format(inventories[key].date, "yyyy-MM-dd"), 
                     current_price: inventories[key].current_price, 
                     fee: inventories[key].fee, 
@@ -104,7 +107,7 @@ export default {
                     username: store.state.username, 
                     code: newItem.value.code, 
                     shares: parseInt(newItem.value.shares), 
-                    buy_price: parseFloat(newItem.value.buy_price), 
+                    transaction_price: parseFloat(newItem.value.transaction_price), 
                     date: formattedDate, 
                     current_price: parseFloat(newItem.value.current_price)
                 }, {
@@ -124,12 +127,24 @@ export default {
             }
         };
 
-        const deleteItem = async (id) => {
+        const selectSellItem = (itemIndex) => {
+            heldItem.value = items.value[itemIndex];
+            sellItem.value = Object.assign({}, heldItem.value);
+        }
+
+        const deleteItem = async () => {
             let alertType = "";
             let alertMessage = "";
+            
             try {
+                let formattedDate = new Date().toISOString();
                 await axios.post(deleteInventoryUrl, {
-                    id: id
+                    username: store.state.username, 
+                    code: sellItem.value.code, 
+                    shares: parseInt(sellItem.value.shares), 
+                    transaction_price: parseFloat(sellItem.value.transaction_price), 
+                    date: formattedDate, 
+                    current_price: 0
                 }, {
                     timeout: API_TIMEOUT, 
                     headers: {
@@ -137,14 +152,10 @@ export default {
                     }
                 });
 
-                items.value = items.value.filter(item => item.id !== id);
+                await listItems();
             } catch(err) {
                 if (err.response) {
                     switch (err.response.status) {
-                        case 404:
-                            alertType = "dander";
-                            alertMessage = INVENTORY_NOT_EXIST;
-                            break;
                         case 500:
                             alertType = "dander";
                             alertMessage = INTERNAL_ERROR;
@@ -172,12 +183,16 @@ export default {
         });
 
         return {
+            isSellVisible, 
             items, 
             newItem, 
+            sellItem, 
+            heldItem, 
             totalRecord, 
             totalPrice, 
             addItem, 
             calcTotalPrice, 
+            selectSellItem, 
             deleteItem, 
             getPrincipalWithFee
         };
