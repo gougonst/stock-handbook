@@ -1,4 +1,5 @@
 use crate::models::inventory_model::InventoryModel;
+use crate::models::stock_error::StockError;
 use crate::models::stock_record_model::{StockRecordAction, StockRecordModel};
 use crate::{app_state::AppState, constants};
 use actix_web::{web, HttpResponse, Responder};
@@ -14,11 +15,11 @@ pub struct UserInfo {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct InventoryInfo {
+pub struct StockRecordInfo {
     username: String,
     code: String,
     shares: i32,
-    buy_price: f64,
+    transaction_price: f64,
     date: DateTime<Utc>,
     current_price: f64,
 }
@@ -34,9 +35,12 @@ pub async fn list_inventories(
 
     match data.record_repo.get_stock_records(&info.username).await {
         Ok(records) => {
-            let inventories = create_inventories(records);
-            let resp = serde_json::to_string(&inventories).unwrap();
-            HttpResponse::Ok().body(resp)
+            if let Ok(inventories) = create_inventories(records) {
+                let resp = serde_json::to_string(&inventories).unwrap();
+                HttpResponse::Ok().body(resp)
+            } else {
+                HttpResponse::InternalServerError().body(constants::HTTP_INTERNAL_ERROR)
+            }
         }
         Err(e) => {
             error!("Get stock records from DB error: {}", e);
@@ -45,7 +49,7 @@ pub async fn list_inventories(
     }
 }
 
-fn create_inventories(records: Vec<StockRecordModel>) -> HashMap<String, InventoryModel> {
+fn create_inventories(records: Vec<StockRecordModel>) -> Result<HashMap<String, InventoryModel>, StockError> {
     let mut inventories = HashMap::new();
 
     for record in records {
@@ -55,15 +59,35 @@ fn create_inventories(records: Vec<StockRecordModel>) -> HashMap<String, Invento
             inventories.insert(code.to_string(), InventoryModel::from_stock_record(&record));
         } else {
             if let Some(inventory) = inventories.get_mut(code) {
-                inventory.add_stock_record(&record);
+                inventory.update_stock_record(&record);
             }
         }
     }
-    inventories
+
+    // Remove the inventories which shares is 0
+    let codes_to_remove: Vec<_> = inventories.iter()
+        .filter(|(_, inventory)| inventory.get_shares() == 0)
+        .map(|(code, _)| code.clone())
+        .collect();
+
+    for code in codes_to_remove {
+        inventories.remove(&code);
+    }
+
+    // If there is inventory's shares < 0, it should raise error
+    let code_with_error: Vec<_> = inventories.iter()
+        .filter(|(_, inventory)| inventory.get_shares() < 0)
+        .map(|(code, _)| code)
+        .collect();
+    if code_with_error.len() > 0 {
+        return Err(StockError::TransactionError);
+    }
+
+    Ok(inventories)
 }
 
 pub async fn add_inventory(
-    info: web::Json<InventoryInfo>,
+    info: web::Json<StockRecordInfo>,
     data: web::Data<AppState>,
 ) -> impl Responder {
     info!("Handle 'add_inventory' request with parameter: {:?}", info);
@@ -74,7 +98,7 @@ pub async fn add_inventory(
         info.username.clone(),
         info.code.clone(),
         info.shares,
-        info.buy_price,
+        info.transaction_price,
         info.date,
         info.current_price,
     );
@@ -83,6 +107,33 @@ pub async fn add_inventory(
             new_record.set_id(Some(oid));
             let resp = serde_json::to_string(&new_record).unwrap();
             HttpResponse::Ok().body(resp)
+        }
+        Err(e) => {
+            error!("Add stock record to DB failed: {}", e);
+            HttpResponse::InternalServerError().body(constants::HTTP_INTERNAL_ERROR)
+        }
+    }
+}
+
+pub async fn reduce_inventory(
+    info: web::Json<StockRecordInfo>,
+    data: web::Data<AppState>,
+) -> impl Responder {
+    info!("Handle 'reduce_inventory' request with parameter: {:?}", info);
+
+    let new_record: StockRecordModel = StockRecordModel::new(
+        None, 
+        StockRecordAction::Delete, 
+        info.username.clone(), 
+        info.code.clone(), 
+        info.shares, 
+        info.transaction_price, 
+        info.date, 
+        info.current_price, 
+    );
+    match data.record_repo.add_stock_record(&new_record).await {
+        Ok(_) => {
+            HttpResponse::Ok().body(constants::HTTP_OK)
         }
         Err(e) => {
             error!("Add stock record to DB failed: {}", e);

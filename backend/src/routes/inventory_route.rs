@@ -5,6 +5,7 @@ pub fn inventory_scope(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/inventory")
             .route("/list", web::get().to(list_inventories))
-            .route("/add", web::post().to(add_inventory)),
+            .route("/add", web::post().to(add_inventory))
+            .route("/delete", web::post().to(reduce_inventory)), 
     );
 }

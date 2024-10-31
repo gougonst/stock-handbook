@@ -35,7 +35,7 @@ pub struct StockRecordModel {
     username: String,
     code: String,
     shares: i32,
-    buy_price: f64,
+    transaction_price: f64,
     #[serde(with = "chrono_datetime_as_bson_datetime")]
     date: DateTime<Utc>,
     current_price: f64,
@@ -50,7 +50,7 @@ impl StockRecordModel {
         username: String,
         code: String,
         shares: i32,
-        buy_price: f64,
+        transaction_price: f64,
         date: DateTime<Utc>,
         current_price: f64,
     ) -> StockRecordModel {
@@ -60,16 +60,20 @@ impl StockRecordModel {
             username,
             code,
             shares,
-            buy_price,
+            transaction_price,
             date,
             current_price,
-            fee: StockRecordModel::calc_fee(shares, buy_price),
-            principal: StockRecordModel::calc_principal(shares, buy_price),
+            fee: StockRecordModel::calc_fee(shares, transaction_price),
+            principal: StockRecordModel::calc_principal(shares, transaction_price),
         }
     }
 
     pub fn set_id(&mut self, id: Option<String>) {
         self.id = id;
+    }
+
+    pub fn get_action(&self) -> &StockRecordAction {
+        &self.action
     }
 
     pub fn get_code(&self) -> &str {
@@ -96,20 +100,25 @@ impl StockRecordModel {
         self.shares
     }
 
-    pub fn get_buy_price(&self) -> f64 {
-        self.buy_price
+    pub fn get_transaction_price(&self) -> f64 {
+        self.transaction_price
     }
 
-    pub fn calc_principal(shares: i32, buy_price: f64) -> f64 {
-        shares as f64 * buy_price
+    pub fn calc_principal(shares: i32, transaction_price: f64) -> f64 {
+        shares as f64 * transaction_price
     }
 
-    fn calc_fee(shares: i32, buy_price: f64) -> i32 {
-        let fee = (StockRecordModel::calc_principal(shares, buy_price) * 0.001425).trunc() as i32;
+    fn calc_fee(shares: i32, transaction_price: f64) -> i32 {
+        let fee = (StockRecordModel::calc_principal(shares, transaction_price) * 0.001425).trunc() as i32;
         match fee <= 20 {
             true => 20,
             false => fee,
         }
+    }
+
+    fn calc_transaction_tax(shares: i32, transaction_price: f64) -> i32 {
+        let tax = (StockRecordModel::calc_principal(shares, transaction_price) * 0.003).trunc() as i32;
+        tax
     }
 }
 
@@ -130,8 +139,8 @@ impl<'de> Deserialize<'de> for StockRecordModel {
         )
         .map_err(|e| serde::de::Error::custom(format!("Failed to parse action: {e}")))?;
 
-        let buy_price = doc
-            .get_f64(constants::RECORD_COLL_BUY_PRICE_COL)
+        let transaction_price = doc
+            .get_f64(constants::RECORD_COLL_TRANSACTION_PRICE_COL)
             .map_err(|e| serde::de::Error::custom(format!("Failed to get buy price: {e}")))?;
         let code = doc
             .get_str(constants::RECORD_COLL_CODE_COL)
@@ -158,7 +167,7 @@ impl<'de> Deserialize<'de> for StockRecordModel {
             username,
             code,
             shares,
-            buy_price,
+            transaction_price,
             date,
             current_price,
         ))

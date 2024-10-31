@@ -7,7 +7,7 @@ pub const USER_COLL_USERNAME_COL: &str = "username";
 
 pub const RECORD_COLL_NAME: &str = "stock_records";
 pub const RECORD_COLL_ACTION_COL: &str = "action";
-pub const RECORD_COLL_BUY_PRICE_COL: &str = "buy_price";
+pub const RECORD_COLL_TRANSACTION_PRICE_COL: &str = "transaction_price";
 pub const RECORD_COLL_CODE_COL: &str = "code";
 pub const RECORD_COLL_CURRENT_PRICE_COL: &str = "current_price";
 pub const RECORD_COLL_DATE_COL: &str = "date";
