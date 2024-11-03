@@ -109,7 +109,8 @@ impl StockRecordModel {
     }
 
     fn calc_fee(shares: i32, transaction_price: f64) -> i32 {
-        let fee = (StockRecordModel::calc_principal(shares, transaction_price) * 0.001425).trunc() as i32;
+        let fee =
+            (StockRecordModel::calc_principal(shares, transaction_price) * 0.001425).trunc() as i32;
         match fee <= 20 {
             true => 20,
             false => fee,
@@ -117,7 +118,8 @@ impl StockRecordModel {
     }
 
     fn calc_transaction_tax(shares: i32, transaction_price: f64) -> i32 {
-        let tax = (StockRecordModel::calc_principal(shares, transaction_price) * 0.003).trunc() as i32;
+        let tax =
+            (StockRecordModel::calc_principal(shares, transaction_price) * 0.003).trunc() as i32;
         tax
     }
 }
