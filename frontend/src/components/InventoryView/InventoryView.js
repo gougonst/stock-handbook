@@ -51,6 +51,18 @@ export default {
             return fee;
         }
 
+        const calcTransactionTax = (inventory) => {
+            return calcPrincipal(inventory) * 0.003;
+        }
+
+        const calcProfitLoss = (buyInventory, sellInventory) => {
+            return calcPrincipal(sellInventory) - calcPrincipal(buyInventory);
+        }
+
+        const calcReturnRate = (buyInventory, sellInventory) => {
+            return (calcProfitLoss(buyInventory, sellInventory) / calcPrincipal(buyInventory)) * 100;
+        }
+
         const pushInventories = (inventories) => {
             items.value = [];
             for (const key in inventories) {
@@ -139,7 +151,7 @@ export default {
                     shares: parseInt(sellItem.value.shares), 
                     transaction_price: parseFloat(sellItem.value.transaction_price), 
                     date: formattedDate, 
-                    current_price: 0
+                    current_price: parseFloat(heldItem.value.transaction_price), 
                 }, {
                     timeout: API_TIMEOUT, 
                     headers: {
@@ -189,6 +201,9 @@ export default {
             calcTotalPrice, 
             calcPrincipal, 
             calcFee, 
+            calcTransactionTax, 
+            calcProfitLoss, 
+            calcReturnRate, 
             selectSellItem, 
             deleteItem, 
         };
