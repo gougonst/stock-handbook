@@ -1,5 +1,5 @@
 <div class="table-responsive">
-    <table class="table">
+    <table class="table table-striped table-bordered" style="table-layout: auto;">
         <thead>
             <tr>
                 <th scope="col"></th>
@@ -7,6 +7,7 @@
                 <th scope="col">股數</th>
                 <th scope="col">買價</th>
                 <th scope="col">本金</th>
+                <th scope="col" style="white-space: nowrap;">手續費</th>
                 <th scope="col">日期</th>
                 <th scope="col">現價</th>
                 <th scope="col">損益</th>
@@ -16,7 +17,7 @@
         </thead>
         <tbody>
             <tr v-for="(item, index) in items" :key="index">
-                <td>
+                <th scope="row">
                     <button 
                         data-bs-toggle="modal"
                         data-bs-target="#sellWindow"
@@ -24,11 +25,12 @@
                     >
                         -
                     </button>
-                </td>
+                </th>
                 <td>{{ item.code }}</td>
                 <td>{{ item.shares }}</td>
                 <td>{{ item.transaction_price }}</td>
-                <td>{{ item.principal_with_fee }}</td>
+                <td>{{ item.principal }}</td>
+                <td>{{ item.fee }}</td>
                 <td>{{ item.date }}</td>
                 <td>{{ item.current_price }}</td>
                 <td>{{ item.profit_loss }}</td>
@@ -36,11 +38,12 @@
                 <td>{{ item.balance }}</td>
             </tr>
             <tr>
-                <td><button v-on:click="addItem">+</button></td>
+                <th scope="row"><button v-on:click="addItem">+</button></th>
                 <td><input v-model="newItem.code" /></td>
                 <td><input v-model="newItem.shares" /></td>
                 <td><input v-model="newItem.transaction_price" /></td>
-                <td><p>{{ getPrincipalWithFee(newItem) }}</p></td>
+                <td>{{ calcPrincipal(newItem) }}</td>
+                <td>{{ calcFee(newItem) }}</td>
                 <td>
                     <el-date-picker
                         v-model="newItem.date"
@@ -56,52 +59,52 @@
             </tr>
         </tbody>
     </table>
-    <div class="modal fade" id="sellWindow" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header d-flex justify-content-between">
-                    <h5 class="modal-title" id="staticBackdropLabel">{{ heldItem.code }}</h5>
-                    <p class="modal-title">{{ heldItem.date }}</p>
-                </div>
-                <div class="modal-body">
-                    <div class="d-flex justify-content-between">
-                        <div class="text-start">
-                            <h5><b>持有</b></h5>
-                            <br />
-                            <div class="mb-3 row">
-                                <p>股數: {{ heldItem.shares }}</p>
-                                <p>買價: {{ heldItem.transaction_price }}</p>
+</div>
+<div class="modal fade" id="sellWindow" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header d-flex justify-content-between">
+                <h5 class="modal-title" id="staticBackdropLabel">{{ heldItem.code }}</h5>
+                <p class="modal-title">{{ heldItem.date }}</p>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between">
+                    <div class="text-start">
+                        <h5><b>持有</b></h5>
+                        <br />
+                        <div class="mb-3 row">
+                            <p>股數: {{ heldItem.shares }}</p>
+                            <p>買價: {{ heldItem.transaction_price }}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h5><b>賣出</b></h5>
+                        <br />
+                        <div class="mb-3 row">
+                            <label for="sellItem.shares" class="col-sm-3 col-form-label">股數</label>
+                            <div class="col-sm-7">
+                                <input class="form-control" v-model="sellItem.shares">
                             </div>
                         </div>
-                        <div>
-                            <h5><b>賣出</b></h5>
-                            <br />
-                            <div class="mb-3 row">
-                                <label for="sellItem.shares" class="col-sm-3 col-form-label">股數</label>
-                                <div class="col-sm-7">
-                                    <input class="form-control" v-model="sellItem.shares">
-                                </div>
-                            </div>
-                            <div class="mb-3 row">
-                                <label for="sellItem.transaction_price" class="col-sm-3 col-form-label">賣價</label>
-                                <div class="col-sm-7">
-                                    <input class="form-control" v-model="sellItem.transaction_price">
-                                </div>
+                        <div class="mb-3 row">
+                            <label for="sellItem.transaction_price" class="col-sm-3 col-form-label">賣價</label>
+                            <div class="col-sm-7">
+                                <input class="form-control" v-model="sellItem.transaction_price">
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button 
-                        v-on:click="deleteItem"
-                        type="button" 
-                        class="btn btn-primary"
-                        data-bs-dismiss="modal"
-                    >
-                        賣出
-                    </button>
-                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button 
+                    v-on:click="deleteItem"
+                    type="button" 
+                    class="btn btn-primary"
+                    data-bs-dismiss="modal"
+                >
+                    賣出
+                </button>
             </div>
         </div>
     </div>
@@ -109,6 +112,6 @@
 <div class="container">
     <div class="d-flex">
         <p class="me-5">總筆數: {{ items.length }}</p>
-        <p>總額: {{ calcTotalPrice() }}</p>
+        <p>總額: {{ calcTotalPrice().toFixed() }}</p>
     </div>
 </div>

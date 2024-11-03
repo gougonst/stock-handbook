@@ -36,11 +36,11 @@ export default {
             items.value.forEach(inventory => {
                 totalPrice += inventory.transaction_price * inventory.shares + calcFee(inventory);
             });
-            return totalPrice.toFixed();
+            return totalPrice;
         }
 
         const calcPrincipal = (inventory) => {
-            return inventory.transaction_price * inventory.shares;
+            return (inventory.transaction_price * inventory.shares);
         }
 
         const calcFee = (inventory) => {
@@ -49,10 +49,6 @@ export default {
                 fee = 20;
             }
             return fee;
-        }
-
-        const getPrincipalWithFee = (inventory) => {
-            return calcPrincipal(inventory).toFixed() + "+" + calcFee(inventory).toFixed();
         }
 
         const pushInventories = (inventories) => {
@@ -67,8 +63,7 @@ export default {
                     date: format(inventories[key].date, "yyyy-MM-dd"), 
                     current_price: inventories[key].current_price, 
                     fee: inventories[key].fee, 
-                    principal: inventories[key].principal, 
-                    principal_with_fee: inventories[key].principal.toFixed() + "+" + inventories[key].fee
+                    principal: inventories[key].principal.toFixed(), 
                 }
                 console.log(`inventory: ${inventory}`);
                 items.value.push(inventory);
@@ -89,7 +84,7 @@ export default {
                 
                 console.log("resp");
                 console.log(resp);
-                pushInventories(resp.data);
+                pushInventories(resp.data['inventories']);
                 console.log("items");
                 console.log(items.value);
             } catch (err) {
@@ -135,7 +130,7 @@ export default {
         const deleteItem = async () => {
             let alertType = "";
             let alertMessage = "";
-            
+
             try {
                 let formattedDate = new Date().toISOString();
                 await axios.post(deleteInventoryUrl, {
@@ -192,9 +187,10 @@ export default {
             totalPrice, 
             addItem, 
             calcTotalPrice, 
+            calcPrincipal, 
+            calcFee, 
             selectSellItem, 
             deleteItem, 
-            getPrincipalWithFee
         };
     }
 }
