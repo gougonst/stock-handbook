@@ -1,9 +1,9 @@
 use super::stock_error::StockError;
 use super::stock_record_model::{StockRecordAction, StockRecordModel};
 use chrono::{DateTime, Utc};
+use log::debug;
 use serde::Serialize;
 use std::collections::HashMap;
-use log::debug;
 
 #[derive(Serialize, Debug, Clone)]
 struct StockInventoryModel {

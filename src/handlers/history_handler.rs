@@ -11,23 +11,17 @@ use serde_json;
 #[derive(Debug, Deserialize)]
 pub struct UserInfo {
     username: String,
-    transaction_type: String, 
+    transaction_type: String,
 }
 
-pub async fn list_history(
-    info: web::Query<UserInfo>,
-    data: web::Data<AppState>,
-) -> impl Responder {
-    info!(
-        "Handle 'list_history' request with parameter: {:?}",
-        info
-    );
+pub async fn list_history(info: web::Query<UserInfo>, data: web::Data<AppState>) -> impl Responder {
+    info!("Handle 'list_history' request with parameter: {:?}", info);
 
     match data.record_repo.get_stock_records(&info.username).await {
         Ok(records) => {
             let transaction_type = match info.transaction_type.as_str() {
-                TRANSACTION_SELL => Ok(&StockRecordAction::Delete), 
-                TRANSACTION_BUY => Ok(&StockRecordAction::Add), 
+                TRANSACTION_SELL => Ok(&StockRecordAction::Delete),
+                TRANSACTION_BUY => Ok(&StockRecordAction::Add),
                 _ => {
                     error!("No such transaction type: {}", &info.transaction_type);
                     Err(StockError::TransactionTypeError)
@@ -42,10 +36,8 @@ pub async fn list_history(
                         .collect();
                     let resp = serde_json::to_string(&sell_records).unwrap();
                     HttpResponse::Ok().body(resp)
-                }, 
-                Err(_) => {
-                    HttpResponse::InternalServerError().body(constants::HTTP_INTERNAL_ERROR)
                 }
+                Err(_) => HttpResponse::InternalServerError().body(constants::HTTP_INTERNAL_ERROR),
             }
         }
         Err(e) => {

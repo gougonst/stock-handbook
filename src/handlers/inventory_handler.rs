@@ -3,7 +3,7 @@ use crate::models::stock_record_model::{StockRecordAction, StockRecordModel};
 use crate::{app_state::AppState, constants};
 use actix_web::{web, HttpResponse, Responder};
 use chrono::{DateTime, Utc};
-use log::{error, debug, info};
+use log::{debug, error, info};
 use serde::Deserialize;
 use serde_json;
 

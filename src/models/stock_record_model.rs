@@ -1,9 +1,9 @@
 use chrono::prelude::*;
 use chrono::Utc;
 use core::fmt;
+use log::debug;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
-use log::debug;
 
 use crate::constants;
 use crate::constants::ACTION_ADD;
@@ -150,12 +150,13 @@ impl<'de> Deserialize<'de> for StockRecordModel {
         let current_price = doc
             .get_f64(constants::RECORD_COLL_CURRENT_PRICE_COL)
             .map_err(|e| serde::de::Error::custom(format!("Failed to get current price: {e}")))?;
-        let date_str = doc.get_str(constants::RECORD_COLL_DATE_COL)
+        let date_str = doc
+            .get_str(constants::RECORD_COLL_DATE_COL)
             .map_err(|e| serde::de::Error::custom(format!("Failed to get date: {e}")))?;
         debug!("{:?}", date_str);
         let date = DateTime::parse_from_rfc3339(
             doc.get_str(constants::RECORD_COLL_DATE_COL)
-                .map_err(|e| serde::de::Error::custom(format!("Failed to get date: {e}")))?, 
+                .map_err(|e| serde::de::Error::custom(format!("Failed to get date: {e}")))?,
         )
         .map_err(|e| serde::de::Error::custom(format!("Failed to parse date: {e}")))?
         .with_timezone(&Utc);
