@@ -12,13 +12,23 @@
         <li class="nav-item">
             <a 
                 class="nav-link" 
-                v-bind:class="{ active: currentTab === 'history' }" 
-                v-on:click="clickHistoryTab"
+                v-bind:class="{ active: currentTab === 'buyHistory' }" 
+                v-on:click="clickHistoryTab('buy')"
             >
-                歷史
+                買入歷史
+            </a>
+        </li>
+        <li class="nav-item">
+            <a 
+                class="nav-link" 
+                v-bind:class="{ active: currentTab === 'sellHistory' }" 
+                v-on:click="clickHistoryTab('sell')"
+            >
+                賣出歷史
             </a>
         </li>
     </ul>
     <InventoryView v-if="currentTab === 'inventory'" />
-    <HistoryView v-if="currentTab === 'history'" />
+    <HistoryView v-if="currentTab === 'buyHistory'" :transaction_type="'buy'" />
+    <HistoryView v-if="currentTab === 'sellHistory'" :transaction_type="'sell'" />
 </div>

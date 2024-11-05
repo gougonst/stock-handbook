@@ -1,15 +1,15 @@
 use chrono::prelude::*;
 use chrono::Utc;
 use core::fmt;
-use mongodb::bson::serde_helpers::chrono_datetime_as_bson_datetime;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
+use log::debug;
 
 use crate::constants;
 use crate::constants::ACTION_ADD;
 use crate::constants::ACTION_DELETE;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(PartialEq, Serialize, Deserialize, Debug)]
 pub enum StockRecordAction {
     Add,
     Delete,
@@ -36,7 +36,6 @@ pub struct StockRecordModel {
     code: String,
     shares: i32,
     transaction_price: f64,
-    #[serde(with = "chrono_datetime_as_bson_datetime")]
     date: DateTime<Utc>,
     current_price: f64,
     fee: i32,
@@ -151,10 +150,17 @@ impl<'de> Deserialize<'de> for StockRecordModel {
         let current_price = doc
             .get_f64(constants::RECORD_COLL_CURRENT_PRICE_COL)
             .map_err(|e| serde::de::Error::custom(format!("Failed to get current price: {e}")))?;
-        let date = doc
-            .get_datetime(constants::RECORD_COLL_DATE_COL)
-            .map(|dt| dt.to_chrono())
+        let date_str = doc.get_str(constants::RECORD_COLL_DATE_COL)
             .map_err(|e| serde::de::Error::custom(format!("Failed to get date: {e}")))?;
+        debug!("{:?}", date_str);
+        let date = DateTime::parse_from_rfc3339(
+            doc.get_str(constants::RECORD_COLL_DATE_COL)
+                .map_err(|e| serde::de::Error::custom(format!("Failed to get date: {e}")))?, 
+        )
+        .map_err(|e| serde::de::Error::custom(format!("Failed to parse date: {e}")))?
+        .with_timezone(&Utc);
+        debug!("{:?}", date);
+
         let shares = doc
             .get_i32(constants::RECORD_COLL_SHARES_COL)
             .map_err(|e| serde::de::Error::custom(format!("Failed to get shares: {e}")))?;

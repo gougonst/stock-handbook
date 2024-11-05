@@ -39,12 +39,12 @@ export default {
             return totalPrice;
         }
 
-        const calcPrincipal = (inventory) => {
-            return (inventory.transaction_price * inventory.shares);
+        const calcPrincipal = (price, shares) => {
+            return (price * shares);
         }
 
         const calcFee = (inventory) => {
-            let fee = calcPrincipal(inventory) * 0.001425;
+            let fee = calcPrincipal(inventory.transaction_price, inventory.shares) * 0.001425;
             if (fee < 20) {
                 fee = 20;
             }
@@ -52,22 +52,21 @@ export default {
         }
 
         const calcTransactionTax = (inventory) => {
-            return calcPrincipal(inventory) * 0.003;
+            return calcPrincipal(inventory.transaction_price, inventory.shares) * 0.003;
         }
 
         const calcProfitLoss = (buyInventory, sellInventory) => {
-            return calcPrincipal(sellInventory) - calcPrincipal(buyInventory);
+            return calcPrincipal(sellInventory.transaction_price, sellInventory.shares) - 
+                    calcPrincipal(buyInventory.transaction_price, sellInventory.shares);
         }
 
         const calcReturnRate = (buyInventory, sellInventory) => {
-            return (calcProfitLoss(buyInventory, sellInventory) / calcPrincipal(buyInventory)) * 100;
+            return (calcProfitLoss(buyInventory, sellInventory) / calcPrincipal(buyInventory.transaction_price, sellInventory.shares)) * 100;
         }
 
         const pushInventories = (inventories) => {
             items.value = [];
             for (const key in inventories) {
-                console.log(`key: ${key}`);
-                console.log(inventories[key]);
                 let inventory = {
                     code: key, 
                     shares: inventories[key].shares, 
@@ -77,7 +76,6 @@ export default {
                     fee: inventories[key].fee, 
                     principal: inventories[key].principal.toFixed(), 
                 }
-                console.log(`inventory: ${inventory}`);
                 items.value.push(inventory);
             }
         }
@@ -105,7 +103,7 @@ export default {
                     message: LIST_INVENTORY_ERROR
                 });
             }
-        };
+        }
 
         const addItem = async () => {
             try {

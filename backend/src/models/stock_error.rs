@@ -4,4 +4,6 @@ use thiserror::Error;
 pub enum StockError {
     #[error("Transaction error")]
     TransactionError,
+    #[error("Transaction type error")]
+    TransactionTypeError, 
 }

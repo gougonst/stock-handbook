@@ -18,6 +18,9 @@ pub const RECORD_COLL_USERNAME_COL: &str = "username";
 pub const ACTION_ADD: &str = "Add";
 pub const ACTION_DELETE: &str = "Delete";
 
+pub const TRANSACTION_BUY: &str = "buy";
+pub const TRANSACTION_SELL: &str = "sell";
+
 pub const GET_MONGODB_CONN_STR_ENV_FAIL: &str =
     "Get mongodb connection string from environment variable failed";
 pub const INIT_DB_ERR: &str = "Init database error";

@@ -3,7 +3,7 @@ use crate::models::stock_record_model::{StockRecordAction, StockRecordModel};
 use crate::{app_state::AppState, constants};
 use actix_web::{web, HttpResponse, Responder};
 use chrono::{DateTime, Utc};
-use log::{error, info};
+use log::{error, debug, info};
 use serde::Deserialize;
 use serde_json;
 
@@ -33,7 +33,9 @@ pub async fn list_inventory_summary(
 
     match data.record_repo.get_stock_records(&info.username).await {
         Ok(records) => {
+            debug!("{:?}", records);
             if let Ok(inventories) = InventorySummaryModel::from_stock_records(records) {
+                debug!("{:?}", inventories);
                 let resp = serde_json::to_string(&inventories).unwrap();
                 HttpResponse::Ok().body(resp)
             } else {

@@ -1,9 +1,9 @@
 use super::stock_error::StockError;
 use super::stock_record_model::{StockRecordAction, StockRecordModel};
 use chrono::{DateTime, Utc};
-use log::error;
 use serde::Serialize;
 use std::collections::HashMap;
+use log::debug;
 
 #[derive(Serialize, Debug, Clone)]
 struct StockInventoryModel {
@@ -78,6 +78,7 @@ impl InventorySummaryModel {
     ) -> Result<InventorySummaryModel, StockError> {
         let mut inventories = HashMap::new();
 
+        debug!("Update stocks");
         for record in records {
             let code = record.get_code();
 
@@ -94,6 +95,7 @@ impl InventorySummaryModel {
         }
 
         // Remove the inventories which shares is 0
+        debug!("Remove stocks");
         let codes_to_remove: Vec<_> = inventories
             .iter()
             .filter(|(_, inventory)| inventory.get_shares() == 0)
@@ -105,6 +107,7 @@ impl InventorySummaryModel {
         }
 
         // If there is inventory's shares < 0, it should raise error
+        debug!("Check stocks");
         let code_with_error: Vec<_> = inventories
             .iter()
             .filter(|(_, inventory)| inventory.get_shares() < 0)

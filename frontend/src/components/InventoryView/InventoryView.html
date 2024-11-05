@@ -42,7 +42,7 @@
                 <td><input v-model="newItem.code" /></td>
                 <td><input v-model="newItem.shares" /></td>
                 <td><input v-model="newItem.transaction_price" /></td>
-                <td>{{ calcPrincipal(newItem) }}</td>
+                <td>{{ calcPrincipal(newItem.transaction_price, newItem.shares) }}</td>
                 <td>{{ calcFee(newItem) }}</td>
                 <td>
                     <el-date-picker

@@ -9,8 +9,11 @@ export default {
             currentTab.value = "inventory";
         }
 
-        const clickHistoryTab = () => {
-            currentTab.value = "history";
+        const clickHistoryTab = (type) => {
+            if (type == "sell")
+                currentTab.value = "sellHistory";
+            else
+                currentTab.value = "buyHistory";
         }
 
         return {

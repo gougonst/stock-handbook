@@ -55,6 +55,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(data.clone())
             .configure(routes::auth_route::auth_scope)
             .configure(routes::inventory_route::inventory_scope)
+            .configure(routes::history_route::history_scope)
     })
     .bind(("0.0.0.0", 8081))?;
 
