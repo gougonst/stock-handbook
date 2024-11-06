@@ -44,6 +44,8 @@ async fn main() -> std::io::Result<()> {
     };
     let data = web::Data::new(app_state);
 
+    let port = env::var(constants::PORT_ENV).unwrap_or_else(|_| "8081".to_string());
+    let port: u16 = port.parse().expect("PORT must be a number");
     let server = HttpServer::new(move || {
         App::new()
             .wrap(
@@ -57,8 +59,8 @@ async fn main() -> std::io::Result<()> {
             .configure(routes::inventory_route::inventory_scope)
             .configure(routes::history_route::history_scope)
     })
-    .bind(("0.0.0.0", 8081))?;
+    .bind(("0.0.0.0", port))?;
 
-    info!("Server is running on 'http://0.0.0.0:8081'");
+    info!("Server is running on 'http://0.0.0.0:{}", port);
     server.run().await
 }

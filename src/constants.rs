@@ -1,3 +1,4 @@
+pub const PORT_ENV: &str = "PORT";
 pub const MONGODB_CONN_STR_ENV: &str = "MONGODB_CONNECTION_STRING";
 pub const DATABASE_NAME: &str = "stock_handnote";
 pub const CORS_DOMAIN: &str = "http://192.168.1.148:8080";
