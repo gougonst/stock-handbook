@@ -4,7 +4,7 @@ use app_state::AppState;
 use database::stock_record_repository::StockRecordRepository;
 use database::user_repository::UserRepository;
 use env_logger::Env;
-use log::info;
+use log::{error, info};
 use mongodb::{Client, Database};
 use std::env;
 use std::sync::Arc;
@@ -17,12 +17,21 @@ mod routes;
 
 async fn init_db() -> Result<Arc<Database>, Box<dyn std::error::Error>> {
     let uri = match env::var(constants::MONGODB_CONN_STR_ENV) {
-        Ok(uri) => uri,
+        Ok(uri) => uri, 
         _ => {
             panic!("{}", constants::GET_MONGODB_CONN_STR_ENV_FAIL);
         }
     };
-    let client = Client::with_uri_str(uri).await?;
+    let client = match Client::with_uri_str(uri).await {
+        Ok(client) => {
+            info!("Successfully conncted to MongoDB!");
+            client
+        }, 
+        Err(e) => {
+            error!("Failed to connect to MongoDB: {}", e);
+            return Err(Box::new(e));
+        }
+    };
     // Get a handle on the movies collection
     Ok(Arc::new(client.database(constants::DATABASE_NAME)))
 }
